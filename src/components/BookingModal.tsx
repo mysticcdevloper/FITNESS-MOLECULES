@@ -15,6 +15,7 @@ interface BookingModalProps {
   initialClass: GymClass | null;
   onPersonalTrainerBooking: (booking: Omit<PersonalTrainerBooking, 'id' | 'createdAt'>) => void;
   onClassBooking: (booking: Omit<ClassBooking, 'id' | 'createdAt'>) => void;
+  currentUser?: { displayName?: string | null; email?: string | null; } | null;
 }
 
 export default function BookingModal({
@@ -23,7 +24,8 @@ export default function BookingModal({
   initialTrainer,
   initialClass,
   onPersonalTrainerBooking,
-  onClassBooking
+  onClassBooking,
+  currentUser
 }: BookingModalProps) {
   const [bookingType, setBookingType] = useState<'trainer' | 'class'>('trainer');
   
@@ -42,6 +44,17 @@ export default function BookingModal({
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedClassTrainerName, setSelectedClassTrainerName] = useState('');
   const [classSessionTime, setClassSessionTime] = useState('');
+
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      if (currentUser.displayName) {
+        setClientName(currentUser.displayName);
+      }
+      if (currentUser.email) {
+        setClientEmail(currentUser.email);
+      }
+    }
+  }, [isOpen, currentUser]);
 
   useEffect(() => {
     if (initialClass) {

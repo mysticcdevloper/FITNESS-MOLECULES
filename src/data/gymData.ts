@@ -4,6 +4,11 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
+import galleryImg1 from '../assets/images/regenerated_image_1780331545800.jpg';
+import galleryImg2 from '../assets/images/regenerated_image_1780331550279.jpg';
+import galleryImg3 from '../assets/images/regenerated_image_1780331548236.jpg';
+import galleryImg4 from '../assets/images/regenerated_image_1780331543674.jpg';
+import galleryImg5 from '../assets/images/regenerated_image_1780331549705.png';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -30,17 +35,6 @@ export const TRAINERS: Trainer[] = [
     schedule: ["06:00 AM", "08:00 AM", "10:00 AM", "04:00 PM", "06:00 PM"]
   },
   {
-    id: "t2",
-    name: "Rohan Varma",
-    role: "Senior strength specialist & CrossFit coach",
-    photo: "https://images.unsplash.com/photo-1605296867304-46d5465a25f1?auto=format&fit=crop&w=600&q=80",
-    experience: "8+ Years",
-    rating: 4.8,
-    specializations: ["Powerlifting", "Olympic Weightlifting", "Functional Conditioning", "CrossFit L2"],
-    biography: "Former national weightlifter, Rohan focuses on building raw strength, explosive speed, and structural integrity. He believes true fitness is built on strong fundamentals.",
-    schedule: ["07:00 AM", "09:00 AM", "11:00 AM", "05:00 PM", "07:00 PM", "08:00 PM"]
-  },
-  {
     id: "t3",
     name: "Ananya Sen",
     role: "Advanced Yoga & Pilates Instructor",
@@ -61,17 +55,6 @@ export const TRAINERS: Trainer[] = [
     specializations: ["Cardio Kickboxing", "Agility Drills", "Fat Oxidation", "HIIT Training"],
     biography: "Vikram is a former state boxing gold-medalist who translates competitive boxing training into fierce, high-energy fat-loss workouts.",
     schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "03:00 PM", "05:00 PM", "07:00 PM"]
-  },
-  {
-    id: "t5",
-    name: "Shreya Ghoshal",
-    role: "Clinical Nutritionist & Body Composition Coach",
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80",
-    experience: "6+ Years",
-    rating: 4.9,
-    specializations: ["Dietetics", "Metabolic Conditioning", "Women's Fitness", "Contest Prep"],
-    biography: "Shreya specializes in cellular nutrition, body recomposition, and diet plans designed to complement intensive workouts without calorie starvation.",
-    schedule: ["09:00 AM", "11:00 AM", "02:00 PM", "04:00 PM", "06:00 PM", "08:00 PM"]
   }
 ];
 
@@ -85,7 +68,7 @@ export const CLASSES: GymClass[] = [
     level: "Intermediate",
     description: "Scientifically structured progressive overload sessions targeting compound and isolation movements for maximum athletic hypertrophy and bone density.",
     scheduleTimes: ["Mon/Wed/Fri - 06:00 AM", "Mon/Wed/Fri - 05:00 PM", "Mon/Wed/Fri - 07:00 PM"],
-    trainers: [TRAINERS[0], TRAINERS[1]] // Dr. Kabir Malhotra, Rohan Varma
+    trainers: [TRAINERS[0]] // Dr. Kabir Malhotra
   },
   {
     id: "c2",
@@ -96,7 +79,7 @@ export const CLASSES: GymClass[] = [
     level: "Advanced",
     description: "High-intensity metabolic conditioning (MetCon) utilizing kettlebells, plyometric boxes, ropes, and rowers for elite cardiovascular endurance.",
     scheduleTimes: ["Tue/Thu/Sat - 07:00 AM", "Tue/Thu/Sat - 06:00 PM"],
-    trainers: [TRAINERS[1], TRAINERS[3]] // Rohan Varma, Vikram Rathore
+    trainers: [TRAINERS[2]] // Vikram Rathore
   },
   {
     id: "c3",
@@ -107,7 +90,7 @@ export const CLASSES: GymClass[] = [
     level: "All Levels",
     description: "Uniting physical postures (Asanas) with controlled breathwork (Pranayama) to accelerate recovery, release muscle tension, and lower cortisol levels.",
     scheduleTimes: ["Mon/Wed/Fri - 08:00 AM", "Tue/Thu - 04:30 PM"],
-    trainers: [TRAINERS[2], TRAINERS[0]] // Ananya Sen, Dr. Kabir Malhotra (injury prevention element)
+    trainers: [TRAINERS[1], TRAINERS[0]] // Ananya Sen, Dr. Kabir Malhotra (injury prevention element)
   },
   {
     id: "c4",
@@ -118,7 +101,7 @@ export const CLASSES: GymClass[] = [
     level: "Beginner",
     description: "A fast-paced shadowboxing and heavy-bag workout incorporating agile floor work to shred calorie reservoirs and improve focus, coordination, and reflex times.",
     scheduleTimes: ["Tue/Thu/Sat - 05:00 PM", "Mon/Wed/Fri - 09:00 AM"],
-    trainers: [TRAINERS[3], TRAINERS[4]] // Vikram Rathore, Shreya Ghoshal (combined fat oxidation approach)
+    trainers: [TRAINERS[2]] // Vikram Rathore
   }
 ];
 
@@ -127,7 +110,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p1",
     name: "Atomic Monthly",
     duration: "1 Month",
-    price: "₹1,999",
+    price: "₹1,000",
     originalPrice: "₹2,499",
     features: [
       "Full access to the main gym floor",
@@ -142,14 +125,14 @@ export const PLANS: MembershipPlan[] = [
     id: "p2",
     name: "Molecular Trimestral",
     duration: "3 Months",
-    price: "₹4,999",
+    price: "₹3,000",
     originalPrice: "₹6,499",
     features: [
       "Full gym and cardio floor access",
       "1 Personal coaching consultation & orientation",
       "Monthly body composition (InBody) analysis",
       "Access to high-intensity CrossFit zones",
-      "Standard diet template from Shreya Ghoshal",
+      "Standard diet template from our nutrition experts",
       "Locker, shower & steam amenities"
     ],
     popular: false,
@@ -159,7 +142,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p3",
     name: "Synthesis Semi-Annual",
     duration: "6 Months",
-    price: "₹8,499",
+    price: "₹5,999",
     originalPrice: "₹11,999",
     features: [
       "All features of 3-month membership",
@@ -177,7 +160,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p4",
     name: "Quantum Annual",
     duration: "1 Year",
-    price: "₹14,999",
+    price: "₹9,999",
     originalPrice: "₹24,999",
     features: [
       "Full access for 12 months with 30-day freeze option",
@@ -215,7 +198,7 @@ export const TRANSFORMATION_STORIES: TransformationStory[] = [
     duration: "4 Months",
     photoBefore: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80",
     photoAfter: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80",
-    testimonial: "Struggling with high metabolism, I couldn't put on muscle. Rohit's powerlifting strategy and Shreya's macronutrient programming helped me build muscle and feel incredibly energetic.",
+    testimonial: "Struggling with high metabolism, I couldn't put on muscle. Dr. Kabir's clinical biomechanics strategy and nutritional programming helped me build muscle and feel incredibly energetic.",
     goal: "Lean Muscle Hypertrophy"
   },
   {
@@ -245,7 +228,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: "test2",
     name: "Sneha Tyagi",
     role: "Software engineer",
-    quote: "I love the booking feature. It is super convenient to schedule class slots on their app interface! The trainers genuinely focus on form, and they don't force buy costly supplements.",
+    quote: "I love the booking feature. It is super convenient to schedule class slots on their app interface! The trainers genuinely focus on form, and they don't focus buy costly supplements.",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80"
   },
@@ -253,7 +236,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: "test3",
     name: "Amir Khan",
     role: "Competitive Runner",
-    quote: "The combination of Rohan's CrossFit guidance and Shreya's diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
+    quote: "The combination of Vikram's conditioning guidance and structured diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
   }
@@ -295,23 +278,23 @@ export const GALLERY_IMGS = [
     caption: "Premium Heavy Loading Zone"
   },
   {
-    url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+    url: galleryImg1,
     caption: "Functional CrossFit Training Turf"
   },
   {
-    url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80",
+    url: galleryImg2,
     caption: "Cardio Rowing and Treadmill Deck"
   },
   {
-    url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
+    url: galleryImg3,
     caption: "Dynamic Boxing & Bag Station"
   },
   {
-    url: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=800&q=80",
-    caption: "Prisinte Dressing and Shower Suites"
+    url: galleryImg4,
+    caption: "Pristine Dressing and Shower Suites"
   },
   {
-    url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=800&q=80",
+    url: galleryImg5,
     caption: "Zen Stretching Yoga Area"
   }
 ];

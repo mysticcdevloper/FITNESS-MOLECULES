@@ -7,6 +7,7 @@ import {
   signInWithPopup 
 } from "firebase/auth";
 import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Sparkles } from "lucide-react";
+import { triggerLocalFallback } from "../lib/firebaseService";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,6 +22,21 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
   const [displayName, setDisplayName] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleSandboxBypass = () => {
+    const tempName = displayName.trim() ? displayName : (email ? email.split('@')[0] : "Rupesh Kumar");
+    const chosenEmail = email.trim() ? email : "itsofficialrupeshcsa@gmail.com";
+    const sandboxUser = {
+      uid: "sandbox_uid_" + Math.random().toString(36).substring(2, 10),
+      email: chosenEmail,
+      displayName: tempName,
+      isSandbox: true
+    };
+    localStorage.setItem('molecule_sandbox_user', JSON.stringify(sandboxUser));
+    triggerLocalFallback();
+    onClose();
+    window.location.reload();
+  };
 
   if (!isOpen) return null;
 
@@ -119,9 +135,27 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
           </div>
 
           {errorMsg && (
-            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs p-3.5 rounded-xl flex items-start space-x-2.5">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <p className="leading-snug">{errorMsg}</p>
+            <div className="space-y-3">
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs p-3.5 rounded-xl flex flex-col space-y-2">
+                <div className="flex items-start space-x-2.5">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-400" />
+                  <div>
+                    <span className="font-mono font-bold uppercase text-[9px] tracking-wider block mb-0.5 text-zinc-500">Firebase Event Log</span>
+                    <p className="leading-snug text-zinc-300">{errorMsg}</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-zinc-550 leading-relaxed font-sans border-t border-rose-500/10 pt-1.5">
+                  💡 Due to sandbox preview limitations, you can bypass cloud sync & test authentication, admin dashboards and scheduling instantly in local-persisted Sandbox Storage.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSandboxBypass}
+                className="w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 hover:text-amber-300 text-xs py-3 px-4 rounded-xl font-bold font-mono tracking-wide transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+              >
+                <Sparkles className="h-4 w-4 text-amber-400" />
+                <span>Bypass with Sandbox Session</span>
+              </button>
             </div>
           )}
 

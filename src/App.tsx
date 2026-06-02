@@ -21,6 +21,36 @@ import RegistrationModal from './components/RegistrationModal';
 import BookingModal from './components/BookingModal';
 import UserDashboard from './components/UserDashboard';
 import WhatsAppWidget from './components/WhatsAppWidget';
+import AuthModal from './components/AuthModal';
+import AdminPortal from './components/AdminPortal';
+
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { 
+  saveRegistration, 
+  saveTrainerBooking, 
+  saveClassBooking, 
+  saveEnquiry, 
+  getUserRegistrations, 
+  getUserTrainerBookings, 
+  getUserClassBookings, 
+  getUserEnquiries,
+  deleteUserRegistration,
+  deleteUserTrainerBooking,
+  deleteUserClassBooking,
+  deleteUserEnquiry,
+  isFallbackActive,
+  triggerLocalFallback,
+  disableLocalFallback
+} from './lib/firebaseService';
+
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  emailVerified?: boolean;
+  isSandbox?: boolean;
+}
 
 import { GYM_LOCATION, WORKOUT_PROGRAMS, TESTIMONIALS } from './data/gymData';
 import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission } from './types';
@@ -46,43 +76,127 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Load persistent localStorage items on initial boot
-  const [registrations, setRegistrations] = useState<MembershipRegistration[]>(() => {
-    const saved = localStorage.getItem('fm_registrations');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Load persistent items - default to empty array, synchronized with Auth/Firestore on login
+  const [registrations, setRegistrations] = useState<MembershipRegistration[]>([]);
+  const [trainerBookings, setTrainerBookings] = useState<PersonalTrainerBooking[]>([]);
+  const [classBookings, setClassBookings] = useState<ClassBooking[]>([]);
+  const [enquiries, setEnquiries] = useState<EnquirySubmission[]>([]);
 
-  const [trainerBookings, setTrainerBookings] = useState<PersonalTrainerBooking[]>(() => {
-    const saved = localStorage.getItem('fm_trainer_bookings');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'register' | 'register_blank' | 'book_trainer' | 'book_class' | 'book_blank' | 'enquiry';
+    data?: any;
+  } | null>(null);
 
-  const [classBookings, setClassBookings] = useState<ClassBooking[]>(() => {
-    const saved = localStorage.getItem('fm_class_bookings');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Core data synchronization helper
+  const syncUserData = async (u: AppUser) => {
+    try {
+      const [regs, trainerB, classB, enqs] = await Promise.all([
+        getUserRegistrations(u.uid),
+        getUserTrainerBookings(u.uid),
+        getUserClassBookings(u.uid),
+        getUserEnquiries(u.uid)
+      ]);
+      setRegistrations(regs);
+      setTrainerBookings(trainerB);
+      setClassBookings(classB);
+      setEnquiries(enqs);
+    } catch (err) {
+      console.error("Error fetching user data from Firestore:", err);
+    }
+  };
 
-  const [enquiries, setEnquiries] = useState<EnquirySubmission[]>(() => {
-    const saved = localStorage.getItem('fm_enquiries');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Track state syncing to localstorage
+  // Sync user state and data from Firestore or Local Storage Sandbox
   useEffect(() => {
-    localStorage.setItem('fm_registrations', JSON.stringify(registrations));
-  }, [registrations]);
+    // Check if there is an active local sandbox user session
+    const savedSandbox = localStorage.getItem('molecule_sandbox_user');
+    if (savedSandbox) {
+      try {
+        const parsed = JSON.parse(savedSandbox);
+        setUser(parsed);
+        triggerLocalFallback();
+        if (parsed.email === "aayush.fitnessmolecules@gmail.com" || parsed.email === "itsofficialrupeshcsa@gmail.com") {
+          setActiveTab('admin');
+        }
+        syncUserData(parsed);
+      } catch (err) {
+        console.error("Error parsing sandbox user session:", err);
+      }
+    }
 
-  useEffect(() => {
-    localStorage.setItem('fm_trainer_bookings', JSON.stringify(trainerBookings));
-  }, [trainerBookings]);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        // Only override if there is no active sandbox session
+        if (!localStorage.getItem('molecule_sandbox_user')) {
+          const u: AppUser = {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            emailVerified: currentUser.emailVerified
+          };
+          setUser(u);
+          if (currentUser.email === "aayush.fitnessmolecules@gmail.com" || currentUser.email === "itsofficialrupeshcsa@gmail.com") {
+            setActiveTab('admin');
+          }
+          await syncUserData(u);
+        }
+      } else {
+        // Clear if not in sandbox mode
+        if (!localStorage.getItem('molecule_sandbox_user')) {
+          setUser(null);
+          setRegistrations([]);
+          setTrainerBookings([]);
+          setClassBookings([]);
+          setEnquiries([]);
+          setActiveTab((prev) => prev === 'admin' ? 'home' : prev);
+        }
+      }
+    });
 
-  useEffect(() => {
-    localStorage.setItem('fm_class_bookings', JSON.stringify(classBookings));
-  }, [classBookings]);
+    // Simple listener for fallback mode updates
+    const handleFallbackUpdate = () => {
+      if (user) {
+        syncUserData(user);
+      }
+    };
+    window.addEventListener('molecule_fallback_changed', handleFallbackUpdate);
 
+    return () => {
+      unsubscribe();
+      window.removeEventListener('molecule_fallback_changed', handleFallbackUpdate);
+    };
+  }, [user?.uid]);
+
+  // Handle pending actions after successful sign-in
   useEffect(() => {
-    localStorage.setItem('fm_enquiries', JSON.stringify(enquiries));
-  }, [enquiries]);
+    if (user && pendingAction) {
+      const { type, data } = pendingAction;
+      setPendingAction(null); // Clear pending action to prevent loop
+      
+      if (type === 'register' && data) {
+        setSelectedPlanForReg(data);
+        setIsRegOpen(true);
+      } else if (type === 'register_blank') {
+        setSelectedPlanForReg(null);
+        setIsRegOpen(true);
+      } else if (type === 'book_trainer' && data) {
+        setInitialBookingTrainer(data);
+        setInitialBookingClass(null);
+        setIsBookingOpen(true);
+      } else if (type === 'book_class' && data) {
+        setInitialBookingClass(data.gymClass);
+        setInitialBookingTrainer(data.trainer);
+        setIsBookingOpen(true);
+      } else if (type === 'book_blank') {
+        setInitialBookingTrainer(null);
+        setInitialBookingClass(null);
+        setIsBookingOpen(true);
+      } else if (type === 'enquiry' && data) {
+        handleEnquirySubmit(data);
+      }
+    }
+  }, [user, pendingAction]);
 
   // Modal Control States
   const [isRegOpen, setIsRegOpen] = useState(false);
@@ -92,89 +206,157 @@ export default function App() {
   const [initialBookingTrainer, setInitialBookingTrainer] = useState<Trainer | null>(null);
   const [initialBookingClass, setInitialBookingClass] = useState<GymClass | null>(null);
 
-  // Helper trigger procedures
+  // Helper trigger procedures with Auth guards
   const triggerJoinPlan = (plan: MembershipPlan) => {
-    setSelectedPlanForReg(plan);
-    setIsRegOpen(true);
+    if (!user) {
+      setPendingAction({ type: 'register', data: plan });
+      setIsAuthOpen(true);
+    } else {
+      setSelectedPlanForReg(plan);
+      setIsRegOpen(true);
+    }
   };
 
   const triggerOpenBlankJoin = () => {
-    setSelectedPlanForReg(null);
-    setIsRegOpen(true);
+    if (!user) {
+      setPendingAction({ type: 'register_blank' });
+      setIsAuthOpen(true);
+    } else {
+      setSelectedPlanForReg(null);
+      setIsRegOpen(true);
+    }
   };
 
   const triggerBookTrainer = (trainer: Trainer) => {
-    setInitialBookingTrainer(trainer);
-    setInitialBookingClass(null);
-    setIsBookingOpen(true);
+    if (!user) {
+      setPendingAction({ type: 'book_trainer', data: trainer });
+      setIsAuthOpen(true);
+    } else {
+      setInitialBookingTrainer(trainer);
+      setInitialBookingClass(null);
+      setIsBookingOpen(true);
+    }
   };
 
   const triggerBookClass = (gymClass: GymClass, trainer: Trainer) => {
-    setInitialBookingClass(gymClass);
-    setInitialBookingTrainer(null);
-    setIsBookingOpen(true);
+    if (!user) {
+      setPendingAction({ type: 'book_class', data: { gymClass, trainer } });
+      setIsAuthOpen(true);
+    } else {
+      setInitialBookingClass(gymClass);
+      setInitialBookingTrainer(null);
+      setIsBookingOpen(true);
+    }
   };
 
   const triggerOpenBlankBooking = () => {
-    setInitialBookingTrainer(null);
-    setInitialBookingClass(null);
-    setIsBookingOpen(true);
+    if (!user) {
+      setPendingAction({ type: 'book_blank' });
+      setIsAuthOpen(true);
+    } else {
+      setInitialBookingTrainer(null);
+      setInitialBookingClass(null);
+      setIsBookingOpen(true);
+    }
   };
 
-  // Submit Operations called from components
-  const handleRegisterSubmit = (newReg: Omit<MembershipRegistration, 'id' | 'createdAt'>) => {
-    const registration: MembershipRegistration = {
-      ...newReg,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      })
-    };
-    setRegistrations((prev) => [registration, ...prev]);
-    setActiveTab('dashboard'); // take straight to custom hub dashboard to view results
+  // Submit Operations calling Firestore persistence
+  const handleRegisterSubmit = async (newReg: Omit<MembershipRegistration, 'id' | 'createdAt'>) => {
+    if (!user) {
+      setPendingAction({ type: 'register_blank' });
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const saved = await saveRegistration(user.uid, newReg);
+      setRegistrations((prev) => [saved, ...prev]);
+      setActiveTab('dashboard'); // view results in dashboard
+    } catch (err) {
+      console.error("Failed to save registration:", err);
+    }
   };
 
-  const handleTrainerBookingSubmit = (newB: Omit<PersonalTrainerBooking, 'id' | 'createdAt'>) => {
-    const booking: PersonalTrainerBooking = {
-      ...newB,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toLocaleDateString('en-IN')
-    };
-    setTrainerBookings((prev) => [booking, ...prev]);
-    setActiveTab('dashboard');
+  const handleTrainerBookingSubmit = async (newB: Omit<PersonalTrainerBooking, 'id' | 'createdAt'>) => {
+    if (!user) {
+      setPendingAction({ type: 'book_blank' });
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const saved = await saveTrainerBooking(user.uid, newB);
+      setTrainerBookings((prev) => [saved, ...prev]);
+      setActiveTab('dashboard');
+    } catch (err) {
+      console.error("Failed to save trainer booking:", err);
+    }
   };
 
-  const handleClassBookingSubmit = (newB: Omit<ClassBooking, 'id' | 'createdAt'>) => {
-    const booking: ClassBooking = {
-      ...newB,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toLocaleDateString('en-IN')
-    };
-    setClassBookings((prev) => [booking, ...prev]);
-    setActiveTab('dashboard');
+  const handleClassBookingSubmit = async (newB: Omit<ClassBooking, 'id' | 'createdAt'>) => {
+    if (!user) {
+      setPendingAction({ type: 'book_blank' });
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const saved = await saveClassBooking(user.uid, newB);
+      setClassBookings((prev) => [saved, ...prev]);
+      setActiveTab('dashboard');
+    } catch (err) {
+      console.error("Failed to save class booking:", err);
+    }
   };
 
-  const handleEnquirySubmit = (newE: Omit<EnquirySubmission, 'id' | 'createdAt'>) => {
-    const enquiry: EnquirySubmission = {
-      ...newE,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: '2-digit'
-      })
-    };
-    setEnquiries((prev) => [enquiry, ...prev]);
+  const handleEnquirySubmit = async (newE: Omit<EnquirySubmission, 'id' | 'createdAt'>) => {
+    if (!user) {
+      setPendingAction({ type: 'enquiry', data: newE });
+      setIsAuthOpen(true);
+      return;
+    }
+    try {
+      const saved = await saveEnquiry(user.uid, newE);
+      setEnquiries((prev) => [saved, ...prev]);
+      setActiveTab('dashboard');
+    } catch (err) {
+      console.error("Failed to save enquiry:", err);
+    }
   };
 
-  // Cancellations
-  const cancelReg = (id: string) => setRegistrations(prev => prev.filter(p => p.id !== id));
-  const cancelTrainerB = (id: string) => setTrainerBookings(prev => prev.filter(p => p.id !== id));
-  const cancelClassB = (id: string) => setClassBookings(prev => prev.filter(p => p.id !== id));
-  const cancelEnquiry = (id: string) => setEnquiries(prev => prev.filter(p => p.id !== id));
+  // Cancellations targeting Firestore
+  const cancelReg = async (id: string) => {
+    try {
+      await deleteUserRegistration(id);
+      setRegistrations(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Failed to cancel registration:", err);
+    }
+  };
+
+  const cancelTrainerB = async (id: string) => {
+    try {
+      await deleteUserTrainerBooking(id);
+      setTrainerBookings(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Failed to cancel trainer booking:", err);
+    }
+  };
+
+  const cancelClassB = async (id: string) => {
+    try {
+      await deleteUserClassBooking(id);
+      setClassBookings(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Failed to cancel class booking:", err);
+    }
+  };
+
+  const cancelEnquiry = async (id: string) => {
+    try {
+      await deleteUserEnquiry(id);
+      setEnquiries(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Failed to cancel enquiry:", err);
+    }
+  };
 
   const hasDashboardData = (registrations.length + trainerBookings.length + classBookings.length + enquiries.length) > 0;
 
@@ -187,6 +369,21 @@ export default function App() {
         setActiveTab={setActiveTab} 
         openJoinModal={triggerOpenBlankJoin} 
         hasDashboardData={hasDashboardData}
+        user={user}
+        onAuthClick={() => setIsAuthOpen(true)}
+        onSignOut={async () => {
+          if (user?.isSandbox || localStorage.getItem('molecule_sandbox_user')) {
+            setUser(null);
+            localStorage.removeItem('molecule_sandbox_user');
+            setRegistrations([]);
+            setTrainerBookings([]);
+            setClassBookings([]);
+            setEnquiries([]);
+            setActiveTab('home');
+          } else {
+            await signOut(auth);
+          }
+        }}
       />
 
       {/* RENDER ACTIVE TAB */}
@@ -439,6 +636,10 @@ export default function App() {
         />
       )}
 
+      {activeTab === 'admin' && user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+        <AdminPortal />
+      )}
+
       {/* FOOTER BLOCK WITH LOCATION INFO */}
       <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-900/60 font-sans py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -561,6 +762,7 @@ export default function App() {
         onClose={() => setIsRegOpen(false)}
         selectedPlan={selectedPlanForReg}
         onRegisterSubmit={handleRegisterSubmit}
+        currentUser={user}
       />
 
       <BookingModal
@@ -570,6 +772,16 @@ export default function App() {
         initialClass={initialBookingClass}
         onPersonalTrainerBooking={handleTrainerBookingSubmit}
         onClassBooking={handleClassBookingSubmit}
+        currentUser={user}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={() => {
+          // Force reload active datasets on success
+          if (user) syncUserData(user);
+        }}
       />
 
       {/* WHATSAPP WIDGET FLOATER PIECE */}

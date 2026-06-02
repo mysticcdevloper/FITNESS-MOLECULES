@@ -4,12 +4,12 @@ import { getFirestore, doc, getDocFromServer } from "firebase/firestore";
 
 // The custom web app's Firebase configuration coordinates shared by user
 export const firebaseConfig = {
-  apiKey: "AIzaSyDrg19v8O_wPUKfsYd_6VeNdbA9oxItojY",
-  authDomain: "fitness-molecules.firebaseapp.com",
-  projectId: "fitness-molecules",
-  storageBucket: "fitness-molecules.firebasestorage.app",
-  messagingSenderId: "674086403225",
-  appId: "1:674086403225:web:d37aa23878955b58078c08"
+  apiKey: "AIzaSyBMqhZ9IV85Tm0vyCKZWZ0NP3EcG8BYnsM",
+  authDomain: "fitness-moleculess-b24c4.firebaseapp.com",
+  projectId: "fitness-moleculess-b24c4",
+  storageBucket: "fitness-moleculess-b24c4.firebasestorage.app",
+  messagingSenderId: "598399271195",
+  appId: "1:598399271195:web:da875a09d1639b3af6d3be"
 };
 
 // Initialize Firebase App

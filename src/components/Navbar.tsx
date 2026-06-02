@@ -4,17 +4,21 @@
  */
 
 import React, { useState } from 'react';
-import { Menu, X, Dumbbell, Calendar, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Dumbbell, Calendar, LayoutDashboard, LogIn, LogOut, User } from 'lucide-react';
 import FMLogo from './FMLogo';
+import { User as FirebaseUser } from 'firebase/auth';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   openJoinModal: (planId?: string) => void;
   hasDashboardData: boolean;
+  user: FirebaseUser | null;
+  onAuthClick: () => void;
+  onSignOut: () => void;
 }
 
-export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDashboardData }: NavbarProps) {
+export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDashboardData, user, onAuthClick, onSignOut }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
@@ -75,6 +79,23 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
               </button>
             ))}
 
+            {user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+              <button
+                onClick={() => handleTabClick('admin')}
+                className={`relative px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all duration-200 ${
+                  activeTab === 'admin' 
+                    ? 'text-red-500 bg-zinc-900 border border-red-500/10' 
+                    : 'text-amber-400 hover:text-white hover:bg-zinc-900/50'
+                }`}
+                id="nav-tab-admin"
+              >
+                ★ Admin Portal
+                {activeTab === 'admin' && (
+                  <span className="absolute bottom-1 left-4 right-4 h-0.5 bg-red-500 rounded-full" />
+                )}
+              </button>
+            )}
+
             {/* Dashboard Badge Tab */}
             {hasDashboardData && (
               <button
@@ -95,6 +116,30 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
 
           {/* Action CTA */}
           <div className="hidden lg:flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-4 bg-zinc-900 border border-zinc-800 py-1.5 px-3.5 rounded-xl">
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">Active Athlete</span>
+                  <span className="text-xs text-white font-sans max-w-[120px] truncate font-medium">{user.displayName || user.email}</span>
+                </div>
+                <button
+                  onClick={onSignOut}
+                  className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/10 transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onAuthClick}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Sign In</span>
+              </button>
+            )}
+            
             <button
               onClick={() => openJoinModal()}
               className="bg-red-500 hover:bg-red-400 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-lg shadow-red-500/10 hover:shadow-red-500/20"
@@ -144,7 +189,52 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
               </button>
             ))}
 
-            <div className="pt-4 px-4">
+            {user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+              <button
+                onClick={() => handleTabClick('admin')}
+                className={`block w-full text-left px-4 py-3 rounded-xl text-base font-bold transition-colors ${
+                  activeTab === 'admin'
+                    ? 'text-red-500 bg-zinc-900 font-bold border-l-2 border-red-500 pl-3'
+                    : 'text-amber-400 hover:text-white hover:bg-zinc-900/50'
+                }`}
+              >
+                ★ Admin Portal
+              </button>
+            )}
+
+            {user ? (
+              <div className="px-4 py-3 bg-zinc-900 border border-zinc-850/50 rounded-xl my-2 mx-2 flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-500">Logged In</span>
+                  <span className="text-sm font-sans text-white truncate max-w-[180px]">{user.displayName || user.email}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onSignOut();
+                  }}
+                  className="flex items-center space-x-1 py-1.5 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/10 rounded-lg text-xs font-mono uppercase"
+                >
+                  <LogOut className="h-3 w-3" />
+                  <span>Out</span>
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 px-4">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onAuthClick();
+                  }}
+                  className="w-full mb-2 bg-zinc-900 hover:bg-zinc-850 border border-zinc-805 text-zinc-300 hover:text-white hover:font-bold py-3 px-4 rounded-xl text-center text-sm transition-colors flex items-center justify-center space-x-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In to Hub</span>
+                </button>
+              </div>
+            )}
+
+            <div className="pt-1 px-4">
               <button
                 onClick={() => {
                   setIsOpen(false);

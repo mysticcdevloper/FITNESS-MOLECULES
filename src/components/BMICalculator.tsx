@@ -31,7 +31,7 @@ export default function BMICalculator() {
 
     if (roundedBmi < 18.5) {
       bmiStatus = 'Underweight';
-      bSuggestion = 'Focus on complex carbohydrates & clean calorie surplus. We recommend our "Hypertrophy & Strength" class paired with a structured diet plan from Shreya Ghoshal to pack lean tissue density.';
+      bSuggestion = 'Focus on complex carbohydrates & clean calorie surplus. We recommend our "Hypertrophy & Strength" class paired with a structured diet plan from our nutrition coaches to pack lean tissue density.';
     } else if (roundedBmi >= 18.5 && roundedBmi < 24.9) {
       bmiStatus = 'Healthy Weight';
       bSuggestion = 'Exceptional baseline body structure! Maintain this metabolism with progressive overload of compound movements. Our "Tactical CrossFit & Conditioning" program will help polish your power and VO2 max levels.';
