@@ -123,3 +123,13 @@ export interface ClassBooking {
   sessionTime: string; // Day and time chosen
   createdAt: string;
 }
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return (
+    clean === "aayush.fitnessmolecules@gmail.com" ||
+    clean === "aayush.fitnessmolecule@gmail.com" ||
+    clean === "itsofficialrupeshcsa@gmail.com"
+  );
+}

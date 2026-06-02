@@ -53,7 +53,7 @@ export interface AppUser {
 }
 
 import { GYM_LOCATION, WORKOUT_PROGRAMS, TESTIMONIALS } from './data/gymData';
-import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission } from './types';
+import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, isAdminEmail } from './types';
 import { Dumbbell, Trophy, ArrowRight, Shield, Heart, Zap, Sparkles, MessageSquare, Star, LayoutDashboard, Plus, Facebook, Instagram, Youtube } from 'lucide-react';
 
 const HERO_BACKGROUNDS = [
@@ -116,7 +116,7 @@ export default function App() {
         const parsed = JSON.parse(savedSandbox);
         setUser(parsed);
         triggerLocalFallback();
-        if (parsed.email === "aayush.fitnessmolecules@gmail.com" || parsed.email === "itsofficialrupeshcsa@gmail.com") {
+        if (isAdminEmail(parsed.email)) {
           setActiveTab('admin');
         }
         syncUserData(parsed);
@@ -136,7 +136,7 @@ export default function App() {
             emailVerified: currentUser.emailVerified
           };
           setUser(u);
-          if (currentUser.email === "aayush.fitnessmolecules@gmail.com" || currentUser.email === "itsofficialrupeshcsa@gmail.com") {
+          if (isAdminEmail(currentUser.email)) {
             setActiveTab('admin');
           }
           await syncUserData(u);
@@ -636,7 +636,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'admin' && user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+      {activeTab === 'admin' && user && isAdminEmail(user.email) && (
         <AdminPortal />
       )}
 

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Menu, X, Dumbbell, Calendar, LayoutDashboard, LogIn, LogOut, User } from 'lucide-react';
 import FMLogo from './FMLogo';
 import { User as FirebaseUser } from 'firebase/auth';
+import { isAdminEmail } from '../types';
 
 interface NavbarProps {
   activeTab: string;
@@ -79,7 +80,7 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
               </button>
             ))}
 
-            {user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+            {user && isAdminEmail(user.email) && (
               <button
                 onClick={() => handleTabClick('admin')}
                 className={`relative px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all duration-200 ${
@@ -189,7 +190,7 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
               </button>
             ))}
 
-            {user && (user.email === "aayush.fitnessmolecules@gmail.com" || user.email === "itsofficialrupeshcsa@gmail.com") && (
+            {user && isAdminEmail(user.email) && (
               <button
                 onClick={() => handleTabClick('admin')}
                 className={`block w-full text-left px-4 py-3 rounded-xl text-base font-bold transition-colors ${

@@ -14,7 +14,7 @@ service cloud.firestore {
 
     // Only email-verified or active email matching our admin
     function isAdmin() {
-      return isSignedIn() && (request.auth.token.email == "aayush.fitnessmolecules@gmail.com" || request.auth.token.email == "itsofficialrupeshcsa@gmail.com");
+      return isSignedIn() && (request.auth.token.email == "aayush.fitnessmolecules@gmail.com" || request.auth.token.email == "aayush.fitnessmolecule@gmail.com" || request.auth.token.email == "itsofficialrupeshcsa@gmail.com");
     }
 
     function isOwner(userId) {
