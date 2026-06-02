@@ -23,19 +23,23 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSandboxBypass = () => {
-    const tempName = displayName.trim() ? displayName : (email ? email.split('@')[0] : "Rupesh Kumar");
-    const chosenEmail = email.trim() ? email : "itsofficialrupeshcsa@gmail.com";
+  const handleSandboxBypassWithRole = (roleEmail: string, roleName: string) => {
     const sandboxUser = {
       uid: "sandbox_uid_" + Math.random().toString(36).substring(2, 10),
-      email: chosenEmail,
-      displayName: tempName,
+      email: roleEmail,
+      displayName: roleName,
       isSandbox: true
     };
     localStorage.setItem('molecule_sandbox_user', JSON.stringify(sandboxUser));
     triggerLocalFallback();
     onClose();
     window.location.reload();
+  };
+
+  const handleSandboxBypass = () => {
+    const tempName = displayName.trim() ? displayName : (email ? email.split('@')[0] : "Rupesh Kumar");
+    const chosenEmail = email.trim() ? email : "itsofficialrupeshcsa@gmail.com";
+    handleSandboxBypassWithRole(chosenEmail, tempName);
   };
 
   if (!isOpen) return null;
@@ -244,6 +248,32 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
             </svg>
             <span>Continue with Google Login</span>
           </button>
+
+          {/* Quick Sandbox Access Hub */}
+          <div className="border-t border-zinc-800/60 pt-4 mt-2">
+            <span className="block text-center text-zinc-500 font-mono text-[9px] uppercase tracking-widest font-bold mb-3">
+              🔋 QUICK TEST SANDBOX ASSISTANT
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleSandboxBypassWithRole("itsofficialrupeshcsa@gmail.com", "Rupesh Kumar (Admin)")}
+                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs py-2 px-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-1 hover:text-red-300 cursor-pointer"
+              >
+                <span>🔑 Admin Mode</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSandboxBypassWithRole("athlete@fitnessmolecule.com", "Athlete Member")}
+                className="bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs py-2 px-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-1 hover:text-white cursor-pointer"
+              >
+                <span>💪 Member Mode</span>
+              </button>
+            </div>
+            <p className="text-[10px] text-zinc-500 text-center mt-2.5 leading-snug">
+              Instant login simulation without triggering Firebase sync limits.
+            </p>
+          </div>
 
           {/* Toggle Button */}
           <div className="text-center pt-2">

@@ -381,7 +381,18 @@ export default function App() {
             setEnquiries([]);
             setActiveTab('home');
           } else {
-            await signOut(auth);
+            try {
+              await signOut(auth);
+            } catch (err) {
+              console.error("Firebase signout error:", err);
+            }
+            setUser(null);
+            localStorage.removeItem('molecule_sandbox_user');
+            setRegistrations([]);
+            setTrainerBookings([]);
+            setClassBookings([]);
+            setEnquiries([]);
+            setActiveTab('home');
           }
         }}
       />
@@ -690,9 +701,6 @@ export default function App() {
                 </a>
               </div>
 
-              <div className="text-[10px] text-zinc-600 font-mono">
-                Plus Code: {GYM_LOCATION.plusCode}
-              </div>
             </div>
 
             {/* Timings */}
@@ -701,7 +709,10 @@ export default function App() {
               <ul className="space-y-2 text-xs font-mono text-zinc-500">
                 {GYM_LOCATION.workingHours.map((wh, idx) => (
                   <li key={idx}>
-                    <p><span className="text-zinc-400">{wh.days}:</span> {wh.hours}</p>
+                    <p>
+                      <span className="text-zinc-400">{wh.days}:</span>{" "}
+                      <span className="text-red-500 font-semibold">{wh.hours}</span>
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -709,7 +720,7 @@ export default function App() {
 
             {/* Club Location */}
             <div>
-              <h4 className="text-white font-mono text-xs uppercase tracking-widest font-bold mb-4">Club Address</h4>
+              <h4 className="text-white font-mono text-xs uppercase tracking-widest font-bold mb-4">Gym Address</h4>
               <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mb-3">
                 {GYM_LOCATION.address}
               </p>

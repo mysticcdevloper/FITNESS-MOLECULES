@@ -9,7 +9,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
-import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission } from "../types";
+import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord } from "../types";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
 let fallbackMode = localStorage.getItem('molecule_use_fallback') === 'true';
@@ -413,6 +413,114 @@ export async function getAllEnquiries(): Promise<EnquirySubmission[]> {
     console.warn("Firestore admin query failed, loading local fallback records:", error);
     triggerLocalFallback();
     return getLocal<EnquirySubmission>('molecule_enquiries');
+  }
+}
+
+export async function saveAttendance(attendance: Omit<AttendanceRecord, 'id' | 'createdAt'>): Promise<AttendanceRecord> {
+  const id = "att_" + Math.random().toString(36).substring(2, 11);
+  const createdAt = new Date().toLocaleDateString('en-IN');
+
+  const record: AttendanceRecord = {
+    ...attendance,
+    id,
+    createdAt
+  };
+
+  if (isFallbackActive()) {
+    const list = getLocal<AttendanceRecord>('molecule_attendance');
+    list.unshift(record);
+    saveLocal('molecule_attendance', list);
+    return record;
+  }
+
+  const path = `attendance`;
+  try {
+    await setDoc(doc(db, path, id), record);
+    return record;
+  } catch (error) {
+    console.warn("Firestore save attendance failed, routing to local sandbox storage:", error);
+    triggerLocalFallback();
+    const list = getLocal<AttendanceRecord>('molecule_attendance');
+    list.unshift(record);
+    saveLocal('molecule_attendance', list);
+    return record;
+  }
+}
+
+export async function getAllAttendance(): Promise<AttendanceRecord[]> {
+  if (isFallbackActive()) {
+    const list = getLocal<AttendanceRecord>('molecule_attendance');
+    if (list.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const seed: AttendanceRecord[] = [
+        {
+          id: "att_1",
+          clientName: "Ramesh Chandra",
+          clientEmail: "ramesh@molecule.fit",
+          clientPhone: "9876543210",
+          date: today,
+          status: "Present",
+          checkInTime: "06:15 AM",
+          notes: "Regular morning strength routine",
+          createdAt: new Date().toLocaleDateString('en-IN')
+        },
+        {
+          id: "att_2",
+          clientName: "Vijay Kumar",
+          clientEmail: "vijay@molecule.fit",
+          clientPhone: "9988776655",
+          date: today,
+          status: "Late",
+          checkInTime: "07:35 AM",
+          notes: "Stuck in traffic, did high intensity cardio",
+          createdAt: new Date().toLocaleDateString('en-IN')
+        },
+        {
+          id: "att_3",
+          clientName: "Neha Sharma",
+          clientEmail: "neha.sharma@molecule.fit",
+          clientPhone: "9123456789",
+          date: yesterday,
+          status: "Absent",
+          notes: "Informed: family emergency",
+          createdAt: new Date().toLocaleDateString('en-IN')
+        }
+      ];
+      saveLocal('molecule_attendance', seed);
+      return seed;
+    }
+    return list;
+  }
+  const path = `attendance`;
+  try {
+    const qSnapshot = await getDocs(collection(db, path));
+    const list: AttendanceRecord[] = [];
+    qSnapshot.forEach((doc) => {
+      list.push(doc.data() as AttendanceRecord);
+    });
+    return list;
+  } catch (error) {
+    console.warn("Firestore query attendance failed, loading local fallback records:", error);
+    triggerLocalFallback();
+    return getLocal<AttendanceRecord>('molecule_attendance');
+  }
+}
+
+export async function deleteAttendance(id: string): Promise<void> {
+  if (isFallbackActive()) {
+    const list = getLocal<AttendanceRecord>('molecule_attendance');
+    saveLocal('molecule_attendance', list.filter(item => item.id !== id));
+    return;
+  }
+  const path = `attendance`;
+  try {
+    await deleteDoc(doc(db, path, id));
+  } catch (error) {
+    console.warn("Firestore delete attendance failed, loading local fallback records:", error);
+    triggerLocalFallback();
+    const list = getLocal<AttendanceRecord>('molecule_attendance');
+    saveLocal('molecule_attendance', list.filter(item => item.id !== id));
   }
 }
 

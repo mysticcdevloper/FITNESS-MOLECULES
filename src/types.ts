@@ -124,6 +124,18 @@ export interface ClassBooking {
   createdAt: string;
 }
 
+export interface AttendanceRecord {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  date: string; // YYYY-MM-DD
+  status: 'Present' | 'Absent' | 'Late';
+  checkInTime?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   const clean = email.trim().toLowerCase();

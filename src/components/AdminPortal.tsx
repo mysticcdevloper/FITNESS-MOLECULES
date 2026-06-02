@@ -18,9 +18,12 @@ import {
   deleteUserClassBooking,
   deleteUserEnquiry,
   isFallbackActive,
-  disableLocalFallback
+  disableLocalFallback,
+  saveAttendance,
+  getAllAttendance,
+  deleteAttendance
 } from '../lib/firebaseService';
-import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission } from '../types';
+import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord } from '../types';
 import { 
   Award, 
   Calendar, 
@@ -37,12 +40,14 @@ import {
   X,
   CreditCard,
   Target,
-  Sparkles
+  Sparkles,
+  Check,
+  ShieldAlert
 } from 'lucide-react';
 import { TRAINERS, CLASSES, PLANS } from '../data/gymData';
 
 export default function AdminPortal() {
-  const [activeTab, setActiveTab] = useState<'memberships' | 'trainers' | 'classes' | 'enquiries'>('memberships');
+  const [activeTab, setActiveTab] = useState<'memberships' | 'trainers' | 'classes' | 'enquiries' | 'attendance'>('memberships');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -51,10 +56,11 @@ export default function AdminPortal() {
   const [trainerBookings, setTrainerBookings] = useState<PersonalTrainerBooking[]>([]);
   const [classBookings, setClassBookings] = useState<ClassBooking[]>([]);
   const [enquiries, setEnquiries] = useState<EnquirySubmission[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
 
   // Form controlling states
   const [showAddForm, setShowAddForm] = useState(false);
-  const [addType, setAddType] = useState<'membership' | 'trainer' | 'class' | 'enquiry'>('membership');
+  const [addType, setAddType] = useState<'membership' | 'trainer' | 'class' | 'enquiry' | 'attendance'>('membership');
 
   // New Membership Form State
   const [mPlanId, setMPlanId] = useState('p1');
@@ -88,20 +94,33 @@ export default function AdminPortal() {
   const [eFitnessGoal, setEFitnessGoal] = useState('Fat Loss');
   const [eMessage, setEMessage] = useState('');
 
+  // New Attendance Form State
+  const [attClientName, setAttClientName] = useState('');
+  const [attClientEmail, setAttClientEmail] = useState('');
+  const [attClientPhone, setAttClientPhone] = useState('');
+  const [attDate, setAttDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attStatus, setAttStatus] = useState<'Present' | 'Absent' | 'Late'>('Present');
+  const [attCheckInTime, setAttCheckInTime] = useState('06:00 AM');
+  const [attNotes, setAttNotes] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Present' | 'Absent' | 'Late'>('All');
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+
   // Fetch all collections
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [regs, trainersB, classesB, enqs] = await Promise.all([
+      const [regs, trainersB, classesB, enqs, atts] = await Promise.all([
         getAllRegistrations(),
         getAllTrainerBookings(),
         getAllClassBookings(),
-        getAllEnquiries()
+        getAllEnquiries(),
+        getAllAttendance()
       ]);
       setRegistrations(regs);
       setTrainerBookings(trainersB);
       setClassBookings(classesB);
       setEnquiries(enqs);
+      setAttendance(atts);
     } catch (err) {
       console.error("Error fetching admin visual datasets:", err);
     } finally {
@@ -194,6 +213,21 @@ export default function AdminPortal() {
         setEClientPhone('');
         setEClientEmail('');
         setEMessage('');
+      } else if (addType === 'attendance') {
+        const newRecord = {
+          clientName: attClientName,
+          clientEmail: attClientEmail,
+          clientPhone: attClientPhone,
+          date: attDate,
+          status: attStatus,
+          checkInTime: attStatus !== 'Absent' ? attCheckInTime : '',
+          notes: attNotes
+        };
+        await saveAttendance(newRecord);
+        setAttClientName('');
+        setAttClientEmail('');
+        setAttClientPhone('');
+        setAttNotes('');
       }
 
       setShowAddForm(false);
@@ -207,42 +241,52 @@ export default function AdminPortal() {
 
   // Deletion locks
   const handleDeleteRegistration = async (id: string) => {
-    if (!window.confirm("Are you sure you want to cancel and delete this membership application?")) return;
     try {
       await deleteUserRegistration(id);
       setRegistrations(prev => prev.filter(r => r.id !== id));
+      if (confirmingDeleteId === id) setConfirmingDeleteId(null);
     } catch (err) {
       console.error("Failed to cancel membership:", err);
     }
   };
 
   const handleDeleteTrainerBooking = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this trainer booking?")) return;
     try {
       await deleteUserTrainerBooking(id);
       setTrainerBookings(prev => prev.filter(b => b.id !== id));
+      if (confirmingDeleteId === id) setConfirmingDeleteId(null);
     } catch (err) {
       console.error("Failed to cancel trainer booking:", err);
     }
   };
 
   const handleDeleteClassBooking = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this class slot?")) return;
     try {
       await deleteUserClassBooking(id);
       setClassBookings(prev => prev.filter(b => b.id !== id));
+      if (confirmingDeleteId === id) setConfirmingDeleteId(null);
     } catch (err) {
       console.error("Failed to cancel class slot:", err);
     }
   };
 
   const handleDeleteEnquiry = async (id: string) => {
-    if (!window.confirm("Are you sure you want to clear this advisory enquiry ticket?")) return;
     try {
       await deleteUserEnquiry(id);
       setEnquiries(prev => prev.filter(e => e.id !== id));
+      if (confirmingDeleteId === id) setConfirmingDeleteId(null);
     } catch (err) {
       console.error("Failed to cancel enquiry ticket:", err);
+    }
+  };
+
+  const handleDeleteAttendance = async (id: string) => {
+    try {
+      await deleteAttendance(id);
+      setAttendance(prev => prev.filter(att => att.id !== id));
+      if (confirmingDeleteId === id) setConfirmingDeleteId(null);
+    } catch (err) {
+      console.error("Failed to delete attendance record:", err);
     }
   };
 
@@ -275,6 +319,14 @@ export default function AdminPortal() {
     e.phone.includes(searchQuery)
   );
 
+  const filterAttendance = attendance.filter(att => 
+    att.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    att.clientEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    att.clientPhone.includes(searchQuery) ||
+    att.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (att.notes && att.notes.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <section className="py-12 bg-zinc-950 text-white min-h-[85vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -288,7 +340,16 @@ export default function AdminPortal() {
             <h2 className="text-3xl sm:text-4xl font-display font-medium text-white mt-4 uppercase">
               ADMINISTRATOR <span className="text-red-500">PORTAL</span>
             </h2>
-            <p className="text-zinc-500 text-xs sm:text-sm mt-1">
+            <div className="flex items-center gap-2 mt-3 bg-red-500/10 border border-red-500/25 px-3 py-1.5 rounded-xl w-fit">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+              <p className="text-zinc-300 text-xs font-mono font-medium tracking-wide uppercase">
+                Welcome back, Owners <span className="text-white font-bold">Ayush & Manu</span>
+              </p>
+            </div>
+            <p className="text-zinc-500 text-xs sm:text-sm mt-3">
               Live read/write telemetry database dashboard for Molecule Athlete Booking Infrastructure.
             </p>
           </div>
@@ -309,6 +370,7 @@ export default function AdminPortal() {
                 else if (activeTab === 'trainers') setAddType('trainer');
                 else if (activeTab === 'classes') setAddType('class');
                 else if (activeTab === 'enquiries') setAddType('enquiry');
+                else if (activeTab === 'attendance') setAddType('attendance');
               }}
               className="flex items-center space-x-2 bg-red-500 hover:bg-red-400 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-lg shadow-red-500/15 cursor-pointer"
             >
@@ -344,7 +406,7 @@ export default function AdminPortal() {
         )}
 
         {/* Search, metrics and switches board */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <div className="bg-zinc-900 border border-zinc-850/50 p-4 rounded-2xl flex items-center justify-between">
             <div>
               <span className="block text-[10px] font-mono tracking-wider text-zinc-500 uppercase">Memberships</span>
@@ -381,6 +443,15 @@ export default function AdminPortal() {
               <MessageSquare className="h-5 w-5" />
             </div>
           </div>
+          <div className="bg-zinc-900 border border-zinc-850/50 p-4 rounded-2xl flex items-center justify-between">
+            <div>
+              <span className="block text-[10px] font-mono tracking-wider text-zinc-500 uppercase">Attendance Logs</span>
+              <span className="block text-xl font-bold font-display text-white mt-0.5">{attendance.length}</span>
+            </div>
+            <div className="bg-rose-500/10 p-2 rounded-xl text-red-500">
+              <Check className="h-5 w-5 animate-pulse" />
+            </div>
+          </div>
         </div>
 
         {/* Tab Selection Row & Filter Search Bar */}
@@ -388,31 +459,38 @@ export default function AdminPortal() {
           <div className="flex flex-wrap p-1 bg-zinc-905 border border-zinc-850 rounded-2xl w-full lg:w-auto">
             <button
               onClick={() => { setActiveTab('memberships'); setSearchQuery(''); }}
-              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'memberships' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'memberships' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
             >
               <Award className="h-4 w-4" />
               <span>Memberships</span>
             </button>
             <button
               onClick={() => { setActiveTab('trainers'); setSearchQuery(''); }}
-              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'trainers' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'trainers' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
             >
               <Calendar className="h-4 w-4" />
               <span>Trainer Bookings</span>
             </button>
             <button
               onClick={() => { setActiveTab('classes'); setSearchQuery(''); }}
-              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'classes' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'classes' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
             >
               <CheckSquare className="h-4 w-4" />
               <span>Class Slots</span>
             </button>
             <button
               onClick={() => { setActiveTab('enquiries'); setSearchQuery(''); }}
-              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'enquiries' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'enquiries' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
             >
               <MessageSquare className="h-4 w-4" />
               <span>Enquiries</span>
+            </button>
+            <button
+              onClick={() => { setActiveTab('attendance'); setSearchQuery(''); }}
+              className={`flex-1 lg:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === 'attendance' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+            >
+              <Check className="h-4 w-4" />
+              <span>Attendance</span>
             </button>
           </div>
 
@@ -499,13 +577,33 @@ export default function AdminPortal() {
 
                         <div className="mt-6 pt-4 border-t border-zinc-950 flex items-center justify-between">
                           <span className="text-[9px] font-mono text-zinc-500 uppercase select-all">UserUID: {reg.userId.substring(0,18)}...</span>
-                          <button
-                            onClick={() => handleDeleteRegistration(reg.id)}
-                            className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
-                            title="Cancel Application"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            {confirmingDeleteId === reg.id ? (
+                              <>
+                                <button
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                  className="bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 px-3 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteRegistration(reg.id)}
+                                  className="bg-red-600 hover:bg-red-500 text-white font-mono font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 shadow-md shadow-red-950/20 transition-all cursor-pointer animate-pulse"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  <span>Confirm Delete</span>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmingDeleteId(reg.id)}
+                                className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
+                                title="Cancel Application"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -581,13 +679,33 @@ export default function AdminPortal() {
 
                         <div className="mt-6 pt-4 border-t border-zinc-950 flex items-center justify-between">
                           <span className="text-[9px] font-mono text-zinc-550 uppercase">UUID: {b.id}</span>
-                          <button
-                            onClick={() => handleDeleteTrainerBooking(b.id)}
-                            className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
-                            title="Delete Booking"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            {confirmingDeleteId === b.id ? (
+                              <>
+                                <button
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                  className="bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 px-3 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTrainerBooking(b.id)}
+                                  className="bg-red-600 hover:bg-red-500 text-white font-mono font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 shadow-md shadow-red-950/20 transition-all cursor-pointer animate-pulse"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  <span>Confirm Delete</span>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmingDeleteId(b.id)}
+                                className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
+                                title="Delete Booking"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -654,13 +772,33 @@ export default function AdminPortal() {
 
                         <div className="mt-6 pt-4 border-t border-zinc-950 flex items-center justify-between">
                           <span className="text-[9px] font-mono text-zinc-550 uppercase">Class ID: {b.classId}</span>
-                          <button
-                            onClick={() => handleDeleteClassBooking(b.id)}
-                            className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
-                            title="Delete Slot"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            {confirmingDeleteId === b.id ? (
+                              <>
+                                <button
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                  className="bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 px-3 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClassBooking(b.id)}
+                                  className="bg-red-600 hover:bg-red-500 text-white font-mono font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 shadow-md shadow-red-950/20 transition-all cursor-pointer animate-pulse"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  <span>Confirm Delete</span>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmingDeleteId(b.id)}
+                                className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
+                                title="Delete Slot"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -693,7 +831,7 @@ export default function AdminPortal() {
                             </span>
                             <div>
                               <h4 className="text-white font-display font-bold text-base leading-tight uppercase">{e.name}</h4>
-                              <p className="text-[10px] font-mono text-zinc-500 mt-0.5">Age/Biological: {e.age} Years</p>
+                              <p className="text-[10px] font-mono text-zinc-550 mt-0.5">Age/Biological: {e.age} Years</p>
                             </div>
                           </div>
 
@@ -726,16 +864,165 @@ export default function AdminPortal() {
 
                         <div className="mt-6 pt-4 border-t border-zinc-950 flex items-center justify-between">
                           <span className="text-[9px] font-mono text-zinc-550 uppercase">Ticket ID: {e.id}</span>
-                          <button
-                            onClick={() => handleDeleteEnquiry(e.id)}
-                            className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-2 rounded-xl transition-colors cursor-pointer"
-                            title="Delete Ticket"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            {confirmingDeleteId === e.id ? (
+                              <>
+                                <button
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                  className="bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 px-3 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteEnquiry(e.id)}
+                                  className="bg-red-600 hover:bg-red-500 text-white font-mono font-bold px-3 py-1.5 rounded-xl text-xs flex items-center space-x-1 shadow-md shadow-red-955/20 transition-all cursor-pointer animate-pulse"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  <span>Confirm Delete</span>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmingDeleteId(e.id)}
+                                className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-455 p-2 rounded-xl transition-colors cursor-pointer"
+                                title="Delete Ticket"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ATTENDANCE LISTING TAB */}
+            {activeTab === 'attendance' && (
+              <div className="space-y-6">
+                {/* Status Filter Chips and Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900 border border-zinc-850 p-4 rounded-2xl">
+                  <div>
+                    <h3 className="text-white font-display font-medium text-sm uppercase tracking-wider">Status Filtering Telemetry</h3>
+                    <p className="text-zinc-500 text-xs font-sans mt-0.5">Filter records by active physical attendance tags.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(['All', 'Present', 'Absent', 'Late'] as const).map((chip) => {
+                      const count = chip === 'All' 
+                        ? filterAttendance.length 
+                        : filterAttendance.filter(a => a.status === chip).length;
+                      return (
+                        <button
+                          key={chip}
+                          onClick={() => setStatusFilter(chip)}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${
+                            statusFilter === chip 
+                              ? 'bg-red-500 text-white' 
+                              : 'bg-zinc-955 text-zinc-400 hover:text-white hover:bg-zinc-850 border border-zinc-850'
+                          }`}
+                        >
+                          {chip} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {filterAttendance.filter(a => statusFilter === 'All' ? true : a.status === statusFilter).length === 0 ? (
+                  <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-12 text-center max-w-xl mx-auto py-16">
+                    <Check className="h-12 w-12 text-zinc-800 mx-auto mb-4 stroke-[1.5]" />
+                    <p className="text-zinc-400 font-display text-sm font-medium">No matching attendance logs found</p>
+                    <p className="text-zinc-600 text-xs font-sans mt-1">Add client check-ins easily using "Create New Booking" and selecting the Attendance option.</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                    {filterAttendance
+                      .filter(a => statusFilter === 'All' ? true : a.status === statusFilter)
+                      .map((att) => (
+                        <div key={att.id} className="bg-zinc-900 border border-zinc-850 hover:border-zinc-800 p-5 rounded-2xl relative flex flex-col justify-between transition-colors">
+                          <span className={`absolute top-4 right-4 font-mono text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                            att.status === 'Present' 
+                              ? 'bg-emerald-500/15 border border-emerald-500/20 text-emerald-400' 
+                              : att.status === 'Late'
+                              ? 'bg-amber-500/15 border border-amber-500/20 text-amber-400'
+                              : 'bg-rose-500/15 border border-rose-500/20 text-rose-400'
+                          }`}>
+                            {att.status}
+                          </span>
+
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-zinc-950 p-2 text-red-500 rounded-lg shrink-0">
+                                <User className="h-4 w-4" />
+                              </span>
+                              <div className="min-w-0">
+                                <h4 className="text-white font-display font-bold text-sm uppercase truncate leading-tight">{att.clientName}</h4>
+                                <span className="text-[10px] font-mono text-zinc-500 block mt-0.5">{att.date}</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 border-t border-zinc-850/60 pt-3 space-y-2 text-xs font-sans">
+                              {att.status !== 'Absent' && att.checkInTime && (
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                  <span className="text-zinc-400 font-medium">Checked In: </span>
+                                  <span className="text-white font-mono">{att.checkInTime}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center space-x-2 text-zinc-400">
+                                <Mail className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                <span className="text-zinc-400">Email: </span>
+                                <span className="text-zinc-200 truncate select-all">{att.clientEmail}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-zinc-400">
+                                <Phone className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                <span className="text-zinc-400">Phone: </span>
+                                <span className="text-zinc-200 font-mono select-all">{att.clientPhone}</span>
+                              </div>
+                              
+                              {att.notes && (
+                                <div className="mt-3 bg-zinc-950 p-2.5 rounded-xl border border-zinc-900 text-zinc-300 italic text-[11px] leading-relaxed">
+                                  <span className="not-italic block text-[8px] font-mono uppercase text-zinc-650 mb-0.5">Trainer Notes / Health Status:</span>
+                                  "{att.notes}"
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="mt-5 pt-3 border-t border-zinc-950 flex items-center justify-between">
+                            <span className="text-[9px] font-mono text-zinc-550 uppercase">LOG ID: {att.id}</span>
+                            <div className="flex items-center space-x-2">
+                              {confirmingDeleteId === att.id ? (
+                                <>
+                                  <button
+                                    onClick={() => setConfirmingDeleteId(null)}
+                                    className="bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 px-2.5 py-1.25 rounded-md text-[10px] font-mono transition-colors cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteAttendance(att.id)}
+                                    className="bg-red-600 hover:bg-red-500 text-white font-mono font-bold px-2.5 py-1.25 rounded-md text-[10px] flex items-center space-x-1 shadow-md shadow-red-955/20 transition-all cursor-pointer animate-pulse"
+                                  >
+                                    <Check className="h-3 w-3" />
+                                    <span>Confirm Delete</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => setConfirmingDeleteId(att.id)}
+                                  className="bg-zinc-950 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/20 text-zinc-400 hover:text-rose-450 p-1.5 rounded-xl transition-colors cursor-pointer"
+                                  title="Delete Record"
+                                >
+                                  <Trash className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>
@@ -779,34 +1066,41 @@ export default function AdminPortal() {
               </div>
 
               {/* Add category options check */}
-              <div className="grid grid-cols-4 gap-2 p-1 bg-zinc-950 border border-zinc-850 rounded-xl text-center">
+              <div className="grid grid-cols-5 gap-1.5 p-1 bg-zinc-950 border border-zinc-850 rounded-xl text-center">
                 <button
                   type="button"
                   onClick={() => setAddType('membership')}
-                  className={`py-1.5 px-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'membership' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                  className={`py-1.5 px-0.5 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'membership' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Plan
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddType('trainer')}
-                  className={`py-1.5 px-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'trainer' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                  className={`py-1.5 px-0.5 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'trainer' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Trainer
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddType('class')}
-                  className={`py-1.5 px-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'class' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                  className={`py-1.5 px-0.5 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'class' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Class
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddType('enquiry')}
-                  className={`py-1.5 px-1 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'enquiry' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                  className={`py-1.5 px-0.5 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'enquiry' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Enquiry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddType('attendance')}
+                  className={`py-1.5 px-0.5 rounded-lg text-[9px] font-mono uppercase tracking-wider font-bold transition-all cursor-pointer ${addType === 'attendance' ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  CheckIn
                 </button>
               </div>
 
@@ -1129,6 +1423,96 @@ export default function AdminPortal() {
                         onChange={(e) => setEMessage(e.target.value)}
                         placeholder="Medical background or specific kinesiology consultation topics..." 
                         rows={3}
+                        className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {addType === 'attendance' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Athlete Full Name</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={attClientName} 
+                        onChange={(e) => setAttClientName(e.target.value)}
+                        placeholder="e.g. Ramesh Chandra" 
+                        className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Email Address</label>
+                        <input 
+                          type="email" 
+                          required 
+                          value={attClientEmail} 
+                          onChange={(e) => setAttClientEmail(e.target.value)}
+                          placeholder="client@molecule.fit" 
+                          className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Contact Phone</label>
+                        <input 
+                          type="tel" 
+                          required 
+                          value={attClientPhone} 
+                          onChange={(e) => setAttClientPhone(e.target.value)}
+                          placeholder="+919876543210" 
+                          className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-1">
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Status</label>
+                        <select 
+                          value={attStatus} 
+                          onChange={(e) => setAttStatus(e.target.value as any)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white focus:outline-none focus:border-red-500 font-mono"
+                        >
+                          <option value="Present">Present</option>
+                          <option value="Late">Late</option>
+                          <option value="Absent">Absent</option>
+                        </select>
+                      </div>
+                      
+                      <div className="col-span-1">
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Date</label>
+                        <input 
+                          type="date" 
+                          required 
+                          value={attDate} 
+                          onChange={(e) => setAttDate(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none font-mono"
+                        />
+                      </div>
+
+                      <div className="col-span-1">
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Check-In</label>
+                        <input 
+                          type="text" 
+                          disabled={attStatus === 'Absent'}
+                          value={attCheckInTime} 
+                          onChange={(e) => setAttCheckInTime(e.target.value)}
+                          placeholder="06:30 AM" 
+                          className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none disabled:opacity-45 font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-400 font-mono uppercase tracking-wider mb-1">Trainer Check-in Notes</label>
+                      <textarea 
+                        value={attNotes} 
+                        onChange={(e) => setAttNotes(e.target.value)}
+                        placeholder="Morning routine updates, physical complaints or targeted biophysical indicators..." 
+                        rows={2}
                         className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
                       />
                     </div>

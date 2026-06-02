@@ -33,31 +33,31 @@ export default function OwnersSection() {
         <div className="flex flex-col items-center">
           
           {/* Centered Premium Framing of Owners Image */}
-          <div className="relative group flex justify-center mb-12 max-w-md sm:max-w-lg w-full">
+          <div className="relative group flex justify-center mb-12 max-w-xs sm:max-w-sm w-full">
             {/* Red decorative neon glow background bleed */}
-            <div className="absolute -inset-2 bg-gradient-to-tr from-red-500/30 via-rose-600/15 to-transparent rounded-[32px] blur-xl opacity-75 group-hover:opacity-100 transition duration-700"></div>
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-red-500/20 via-rose-600/10 to-transparent rounded-[24px] blur-lg opacity-75 group-hover:opacity-100 transition duration-700"></div>
             
             {/* Glass-styled container frame */}
-            <div className="relative bg-zinc-900 border border-zinc-800 rounded-[28px] overflow-hidden p-3.5 shadow-2xl w-full">
-              <div className="relative aspect-auto rounded-[20px] overflow-hidden bg-zinc-950">
+            <div className="relative bg-zinc-900 border border-zinc-800 rounded-[22px] overflow-hidden p-2.5 shadow-2xl w-full">
+              <div className="relative aspect-auto rounded-[16px] overflow-hidden bg-zinc-950 flex justify-center items-center">
                 <img 
                   src={ownerImg} 
                   alt="Ayush and Manu - Founders of Fitness Molecule" 
-                  className="w-full h-auto object-cover rounded-[18px] transition-transform duration-700 group-hover:scale-[1.03] filter brightness-105"
+                  className="w-full h-auto max-h-[360px] object-contain rounded-[14px] transition-transform duration-700 group-hover:scale-[1.02] filter brightness-105"
                   referrerPolicy="no-referrer"
                 />
                 
                 {/* Visual subtle shadow gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/10 to-transparent pointer-events-none"></div>
                 
                 {/* Floating Meta tags absolute badges */}
-                <div className="absolute bottom-5 left-5 right-5 flex flex-wrap justify-between items-center gap-3 bg-zinc-950/85 border border-zinc-800 backdrop-blur-md px-4 py-3 rounded-xl">
+                <div className="absolute bottom-4 left-4 right-4 flex flex-wrap justify-between items-center gap-2 bg-zinc-950/90 border border-zinc-800/80 backdrop-blur-md px-3 py-2 rounded-lg">
                   <div className="text-left">
-                    <span className="text-[10px] font-mono uppercase text-zinc-400 tracking-wider">Operational base</span>
-                    <span className="text-white font-bold block text-sm">Ghaziabad, UP</span>
+                    <span className="text-[9px] font-mono uppercase text-zinc-400 tracking-wider">Operational base</span>
+                    <span className="text-white font-bold block text-xs">Ghaziabad, UP</span>
                   </div>
-                  <div className="flex items-center space-x-1.5 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider shadow-lg shadow-red-500/20">
-                    <Award className="h-4 w-4" />
+                  <div className="flex items-center space-x-1.5 bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider shadow-lg shadow-red-500/20">
+                    <Award className="h-3 w-3" />
                     <span>ELITE ATHLETES</span>
                   </div>
                 </div>

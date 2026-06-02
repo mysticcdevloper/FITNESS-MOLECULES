@@ -209,6 +209,25 @@ service cloud.firestore {
         && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
     }
 
+    function isValidAttendance(data) {
+      return data.keys().hasAll(['id', 'clientName', 'clientEmail', 'clientPhone', 'date', 'status'])
+        && data.id is string
+        && data.id.size() <= 64
+        && data.clientName is string
+        && data.clientName.size() <= 200
+        && data.clientEmail is string
+        && data.clientEmail.size() <= 150
+        && data.clientPhone is string
+        && data.clientPhone.size() <= 50
+        && data.date is string
+        && data.date.size() <= 50
+        && data.status is string
+        && (data.status == 'Present' || data.status == 'Absent' || data.status == 'Late')
+        && (!('checkInTime' in data) || (data.checkInTime is string && data.checkInTime.size() <= 50))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 2000))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
     // --- RULES FOR SPECIFIC MATCH PATHS ---
 
     // 1. Users Profile Match
@@ -253,6 +272,15 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidId(enquiryId) && (isValidEnquiry(incoming()) || (isAdmin() && isValidEnquiryAdmin(incoming())));
       allow update: if isSignedIn() && isValidId(enquiryId) && ((existing().userId == request.auth.uid && isValidEnquiry(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidEnquiryAdmin(incoming())));
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // 6. Athlete Attendance Logs
+    match /attendance/{attendanceId} {
+      allow get: if isSignedIn() && isAdmin();
+      allow list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
+      allow update: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
+      allow delete: if isSignedIn() && isAdmin();
     }
   }
 }

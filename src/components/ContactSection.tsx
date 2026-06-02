@@ -93,7 +93,6 @@ export default function ContactSection({ onEnquirySubmit }: ContactSectionProps)
                     <p className="text-zinc-300 text-sm mt-0.5 leading-relaxed font-sans">
                       {GYM_LOCATION.address}
                     </p>
-                    <span className="text-[10px] text-red-500/80 font-mono mt-1 block">Plus Code: {GYM_LOCATION.plusCode}</span>
                   </div>
                 </div>
 
@@ -124,7 +123,8 @@ export default function ContactSection({ onEnquirySubmit }: ContactSectionProps)
                     <div className="space-y-1 mt-1 font-mono text-xs text-zinc-400">
                       {GYM_LOCATION.workingHours.map((wh, idx) => (
                         <p key={idx}>
-                          <span className="text-white font-medium">{wh.days}:</span> {wh.hours}
+                          <span className="text-white font-medium">{wh.days}:</span>{" "}
+                          <span className="text-red-500 font-semibold">{wh.hours}</span>
                         </p>
                       ))}
                     </div>

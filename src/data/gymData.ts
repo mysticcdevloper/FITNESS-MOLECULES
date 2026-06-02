@@ -8,7 +8,8 @@ import galleryImg1 from '../assets/images/regenerated_image_1780331545800.jpg';
 import galleryImg2 from '../assets/images/regenerated_image_1780331550279.jpg';
 import galleryImg3 from '../assets/images/regenerated_image_1780331548236.jpg';
 import galleryImg4 from '../assets/images/regenerated_image_1780331543674.jpg';
-import galleryImg5 from '../assets/images/regenerated_image_1780331549705.png';
+import galleryImgNew0 from '../assets/images/regenerated_image_1780414719576.jpg';
+import galleryImgNew5 from '../assets/images/regenerated_image_1780414717917.jpg';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -18,7 +19,7 @@ export const GYM_LOCATION = {
   email: "aayush.fitnessmolecules@gmail.com",
   workingHours: [
     { days: "Mon - Sat", hours: "05:00 AM - 10:00 PM" },
-    { days: "Sunday", hours: "06:00 AM - 01:00 PM" }
+    { days: "Sunday", hours: "Closed" }
   ]
 };
 
@@ -110,7 +111,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p1",
     name: "Atomic Monthly",
     duration: "1 Month",
-    price: "₹1,000",
+    price: "₹1,499",
     originalPrice: "₹2,499",
     features: [
       "Full access to the main gym floor",
@@ -125,7 +126,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p2",
     name: "Molecular Trimestral",
     duration: "3 Months",
-    price: "₹3,000",
+    price: "₹3,499",
     originalPrice: "₹6,499",
     features: [
       "Full gym and cardio floor access",
@@ -160,7 +161,7 @@ export const PLANS: MembershipPlan[] = [
     id: "p4",
     name: "Quantum Annual",
     duration: "1 Year",
-    price: "₹9,999",
+    price: "₹9,499",
     originalPrice: "₹24,999",
     features: [
       "Full access for 12 months with 30-day freeze option",
@@ -274,7 +275,7 @@ export const WORKOUT_PROGRAMS: WorkoutProgram[] = [
 
 export const GALLERY_IMGS = [
   {
-    url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+    url: galleryImgNew0,
     caption: "Premium Heavy Loading Zone"
   },
   {
@@ -294,7 +295,7 @@ export const GALLERY_IMGS = [
     caption: "Pristine Dressing and Shower Suites"
   },
   {
-    url: galleryImg5,
+    url: galleryImgNew5,
     caption: "Zen Stretching Yoga Area"
   }
 ];

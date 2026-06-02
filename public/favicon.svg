@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <!-- Yellow outer ring filter -->
+    <filter id="neon-yellow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur1" />
+      <feGaussianBlur stdDeviation="14" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Red heart filter -->
+    <filter id="neon-red" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur1" />
+      <feGaussianBlur stdDeviation="12" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Pink 'I' filter -->
+    <filter id="neon-pink" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur1" />
+      <feGaussianBlur stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- White 'FM' filter -->
+    <filter id="neon-white" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur1" />
+      <feGaussianBlur stdDeviation="6" result="glow" />
+      <feMerge>
+        <feMergeNode in="glow" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Background gradient -->
+    <radialGradient id="backingGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#121214" />
+      <stop offset="100%" stop-color="#050506" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background container -->
+  <circle cx="250" cy="250" r="240" fill="url(#backingGrad)" stroke="#1a1a1f" stroke-width="4" />
+  <circle cx="250" cy="250" r="230" fill="none" stroke="#222226" stroke-width="1" stroke-dasharray="4 8" opacity="0.4" />
+
+  <!-- Double Glowing Yellow Neon Outer Rings -->
+  <circle cx="250" cy="250" r="205" fill="none" stroke="#ff8c00" stroke-width="10" opacity="0.4" filter="url(#neon-yellow)" />
+  <circle cx="250" cy="250" r="205" fill="none" stroke="#ffa500" stroke-width="5" filter="url(#neon-yellow)" />
+  <circle cx="250" cy="250" r="205" fill="none" stroke="#fffff0" stroke-width="1.5" opacity="0.8" />
+
+  <!-- Left Side Line accents -->
+  <path d="M 180 190 L 210 190" stroke="#ffffff" stroke-width="3" opacity="0.6" filter="url(#neon-white)" />
+  <path d="M 355 185 L 390 185" stroke="#ffffff" stroke-width="3" opacity="0.6" filter="url(#neon-white)" />
+
+  <!-- Pink-Red "I" -->
+  <text x="155" y="235" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="95" fill="#ff007f" stroke="#ff66b2" stroke-width="3" filter="url(#neon-pink)" text-anchor="middle">I</text>
+  <text x="155" y="235" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="95" fill="#ffffff" text-anchor="middle">I</text>
+
+  <!-- Glowing Red Heart -->
+  <g transform="translate(200, 110) scale(1.1)">
+    <path d="M 60,40 C 50,15 10,15 10,42.5 C 10,65 60,95 60,95 C 60,95 110,65 110,42.5 C 110,15 70,15 60,40 Z" fill="#ff1e1e" stroke="#ff6666" stroke-width="4" stroke-linejoin="round" filter="url(#neon-red)" />
+    <path d="M 60,42 C 51,18 13,18 13,42.5 C 13,63 60,91 60,91 C 60,91 107,63 107,42.5 C 107,18 69,18 60,42 Z" fill="#fff0f5" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" opacity="0.95" />
+  </g>
+
+  <!-- Horizontal line next to FM -->
+  <path d="M 370 262 L 415 262" stroke="#ffffff" stroke-width="3" opacity="0.6" filter="url(#neon-white)" />
+
+  <!-- White-Hot "FM" -->
+  <text x="250" y="410" font-family="system-ui, -apple-system, 'Arial Black', sans-serif" font-weight="900" font-size="145" fill="none" stroke="#1a1a24" stroke-width="24" text-anchor="middle" letter-spacing="6">FM</text>
+  <text x="250" y="410" font-family="system-ui, -apple-system, 'Arial Black', sans-serif" font-weight="900" font-size="145" fill="none" stroke="#ffffff" stroke-width="10" stroke-linejoin="round" filter="url(#neon-white)" text-anchor="middle" letter-spacing="6" opacity="0.9">FM</text>
+  <text x="250" y="410" font-family="system-ui, -apple-system, 'Arial Black', sans-serif" font-weight="900" font-size="145" fill="#050508" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" text-anchor="middle" letter-spacing="6">FM</text>
+  <text x="250" y="410" font-family="system-ui, -apple-system, 'Arial Black', sans-serif" font-weight="900" font-size="145" fill="#ffffff" text-anchor="middle" letter-spacing="6" opacity="0.9">FM</text>
+</svg>
