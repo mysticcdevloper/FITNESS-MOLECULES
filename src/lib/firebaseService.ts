@@ -12,7 +12,12 @@ import { db, handleFirestoreError, OperationType } from "../firebase";
 import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph } from "../types";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
-let fallbackMode = localStorage.getItem('molecule_use_fallback') === 'true';
+let fallbackMode = false;
+try {
+  fallbackMode = localStorage.getItem('molecule_use_fallback') === 'true';
+} catch {
+  // Safe default for sandboxed / private environments
+}
 
 export function isFallbackActive(): boolean {
   return fallbackMode;
@@ -21,14 +26,22 @@ export function isFallbackActive(): boolean {
 export function triggerLocalFallback() {
   if (!fallbackMode) {
     fallbackMode = true;
-    localStorage.setItem('molecule_use_fallback', 'true');
+    try {
+      localStorage.setItem('molecule_use_fallback', 'true');
+    } catch {
+      // ignore
+    }
     window.dispatchEvent(new Event('molecule_fallback_changed'));
   }
 }
 
 export function disableLocalFallback() {
   fallbackMode = false;
-  localStorage.removeItem('molecule_use_fallback');
+  try {
+    localStorage.removeItem('molecule_use_fallback');
+  } catch {
+    // ignore
+  }
   window.dispatchEvent(new Event('molecule_fallback_changed'));
 }
 
@@ -575,7 +588,12 @@ export async function getAllVideos(): Promise<Video[]> {
     }
   ];
 
-  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+  } catch {
+    // Safe fallback
+  }
 
   if (isFallbackActive()) {
     const list = getLocal<Video>('molecule_videos');
@@ -595,7 +613,7 @@ export async function getAllVideos(): Promise<Video[]> {
     qSnapshot.forEach((doc) => {
       const data = doc.data();
       list.push({
-        id: data.id,
+        id: data.id || doc.id,
         userId: data.userId || "",
         uploaderName: data.uploaderName || "",
         title: data.title || "",
@@ -605,23 +623,13 @@ export async function getAllVideos(): Promise<Video[]> {
       } as Video);
     });
 
-    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
+    const filteredList = list.filter(v => v.id && !deletedIdsList.includes(v.id));
 
-    if (filteredList.length === 0 && list.length === 0) {
-      // Seed initial videos in Firestore so it's populated for other visitors
-      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
-      for (const s of activeSeeds) {
-        try {
-          await setDoc(doc(db, path, s.id), s);
-        } catch {
-          // ignore if write fails
-        }
-      }
-      return activeSeeds;
-    }
-
-    // Return the combined array, filtered by unique IDs and excluding deleted videos
+    // ALWAYS combine the fetched Firestore videos with the default seeds so they are always present!
+    // This makes sure visitors ALWAYS see the YouTube videos as a baseline, even if the database is newly created or empty
     const combined = [...filteredList, ...defaultSeeds.filter(v => !deletedIdsList.includes(v.id))];
+    
+    // Filter for unique IDs
     return combined.filter((v, i, self) => self.findIndex(t => t.id === v.id) === i);
   } catch (error) {
     console.warn("Firestore query videos failed, loading static fallback:", error);
@@ -638,10 +646,19 @@ export async function getAllVideos(): Promise<Video[]> {
 }
 
 export async function deleteVideo(id: string): Promise<void> {
-  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+  } catch {
+    // Safe handle
+  }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
-    localStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
+    try {
+      localStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
+    } catch {
+      // Safe handle
+    }
   }
 
   // Synchronously filter out from local client cache so state reflects changes immediately
@@ -694,7 +711,12 @@ export async function savePhotograph(photo: Omit<Photograph, 'id' | 'createdAt'>
 }
 
 export async function getAllPhotographs(): Promise<Photograph[]> {
-  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+  } catch {
+    // Safe fallback
+  }
 
   if (isFallbackActive()) {
     const list = getLocal<Photograph>('molecule_photographs');
@@ -727,10 +749,19 @@ export async function getAllPhotographs(): Promise<Photograph[]> {
 }
 
 export async function deletePhotograph(id: string): Promise<void> {
-  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+  } catch {
+    // Safe fallback
+  }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
-    localStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
+    try {
+      localStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
+    } catch {
+      // Safe fallback
+    }
   }
 
   // Synchronously filter out database/client local caches
