@@ -96,13 +96,18 @@ export default function ContactSection({ onEnquirySubmit }: ContactSectionProps)
                   </div>
                 </div>
 
-                <div className="flex items-start">
+                <div className="flex items-start" id="contact-info-phone-container">
                   <Phone className="h-5.5 w-5.5 text-red-500 shrink-0 mt-0.5 mr-3.5" />
                   <div>
                     <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-wider block">Hotline Hotline</span>
-                    <p className="text-zinc-300 text-sm mt-0.5 leading-relaxed font-sans">
-                      {GYM_LOCATION.phone}
-                    </p>
+                    <div className="text-zinc-300 text-sm mt-0.5 leading-relaxed font-sans flex flex-col space-y-1">
+                      <a href={`tel:${GYM_LOCATION.phone}`} className="hover:text-red-500 transition-colors block" id="contact-phone-primary">
+                        {GYM_LOCATION.phone}
+                      </a>
+                      <a href={`tel:${GYM_LOCATION.phoneSecondary}`} className="hover:text-red-500 transition-colors block" id="contact-phone-secondary">
+                        {GYM_LOCATION.phoneSecondary}
+                      </a>
+                    </div>
                   </div>
                 </div>
 

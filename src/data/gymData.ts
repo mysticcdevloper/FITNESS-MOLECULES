@@ -18,6 +18,7 @@ export const GYM_LOCATION = {
   plusCode: "MCGG+Q3G",
   whatsappNumber: "919910812507", // Editable virtual number for click-to-chat
   phone: "+919910812507",
+  phoneSecondary: "+919616184747",
   email: "aayush.fitnessmolecules@gmail.com",
   workingHours: [
     { days: "Mon - Sat", hours: "05:00 AM - 10:00 PM" },
