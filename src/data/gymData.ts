@@ -10,6 +10,8 @@ import galleryImg3 from '../assets/images/regenerated_image_1780331548236.jpg';
 import galleryImg4 from '../assets/images/regenerated_image_1780331543674.jpg';
 import galleryImgNew0 from '../assets/images/regenerated_image_1780414719576.jpg';
 import galleryImgNew5 from '../assets/images/regenerated_image_1780414717917.jpg';
+import galleryOwnersReal from '../assets/images/regenerated_image_1780491806425.jpg';
+import galleryOwnersTraining from '../assets/images/ayush_and_manu_1780320170219.png';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -275,6 +277,10 @@ export const WORKOUT_PROGRAMS: WorkoutProgram[] = [
 
 export const GALLERY_IMGS = [
   {
+    url: galleryOwnersReal,
+    caption: "Co-Founders Ayush & Manu - Biomechanical Focus"
+  },
+  {
     url: galleryImgNew0,
     caption: "Premium Heavy Loading Zone"
   },
@@ -285,6 +291,10 @@ export const GALLERY_IMGS = [
   {
     url: galleryImg2,
     caption: "Cardio Rowing and Treadmill Deck"
+  },
+  {
+    url: galleryOwnersTraining,
+    caption: "Elite Heavy Powerlifting Rack Suite"
   },
   {
     url: galleryImg3,

@@ -228,6 +228,33 @@ service cloud.firestore {
         && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
     }
 
+    function isValidVideo(data) {
+      return data.keys().hasAll(['id', 'title', 'url'])
+        && data.id is string
+        && data.id.size() <= 64
+        && data.title is string
+        && data.title.size() <= 200
+        && data.url is string
+        && data.url.size() <= 10000000
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
+        && (!('uploaderName' in data) || (data.uploaderName is string && data.uploaderName.size() <= 150))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    function isValidPhotograph(data) {
+      return data.keys().hasAll(['id', 'caption', 'url'])
+        && data.id is string
+        && data.id.size() <= 64
+        && data.caption is string
+        && data.caption.size() <= 200
+        && data.url is string
+        && data.url.size() <= 10000000
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
+        && (!('uploaderName' in data) || (data.uploaderName is string && data.uploaderName.size() <= 150))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
     // --- RULES FOR SPECIFIC MATCH PATHS ---
 
     // 1. Users Profile Match
@@ -281,6 +308,24 @@ service cloud.firestore {
       allow create: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
       allow update: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
       allow delete: if isSignedIn() && isAdmin();
+    }
+
+    // 7. Gym Gallery Video Walkthroughs
+    match /videos/{videoId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidId(videoId) && isValidVideo(incoming());
+      allow update: if isSignedIn() && isValidId(videoId) && isValidVideo(incoming()) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+    
+    // 8. Gym Gallery Photographs
+    match /photographs/{photographId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming());
+      allow update: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
   }
 }

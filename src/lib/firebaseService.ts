@@ -9,7 +9,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
-import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord } from "../types";
+import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph } from "../types";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
 let fallbackMode = localStorage.getItem('molecule_use_fallback') === 'true';
@@ -521,6 +521,231 @@ export async function deleteAttendance(id: string): Promise<void> {
     triggerLocalFallback();
     const list = getLocal<AttendanceRecord>('molecule_attendance');
     saveLocal('molecule_attendance', list.filter(item => item.id !== id));
+  }
+}
+
+export async function saveVideo(video: Omit<Video, 'id' | 'createdAt'>): Promise<Video> {
+  const id = "vid_" + Math.random().toString(36).substring(2, 11);
+  const createdAt = new Date().toLocaleDateString('en-IN');
+
+  const record: Video = {
+    ...video,
+    id,
+    createdAt
+  };
+
+  if (isFallbackActive()) {
+    const list = getLocal<Video>('molecule_videos');
+    list.unshift(record);
+    saveLocal('molecule_videos', list);
+    return record;
+  }
+
+  const path = `videos`;
+  try {
+    await setDoc(doc(db, path, id), record);
+    return record;
+  } catch (error) {
+    console.warn("Firestore save video failed, routing to local sandbox storage:", error);
+    triggerLocalFallback();
+    const list = getLocal<Video>('molecule_videos');
+    list.unshift(record);
+    saveLocal('molecule_videos', list);
+    return record;
+  }
+}
+
+export async function getAllVideos(): Promise<Video[]> {
+  const defaultSeeds: Video[] = [
+    {
+      id: "vid_1",
+      uploaderName: "Ayush",
+      title: "Biomechanical Squat Form Breakdown",
+      description: "Detailed biomechanical walkthrough of standard squat alignment, loading the target quadriceps optimally while completely safeguarding joint integrity and postural health.",
+      url: "https://www.youtube.com/embed/U5zrloYWp8g",
+      createdAt: "01/06/2026"
+    },
+    {
+      id: "vid_2",
+      uploaderName: "Manu",
+      title: "Perfecting Romanian Deadlifts (RDL)",
+      description: "Demonstration of perfect hamstring and glute recruitment mechanics. Learn why the hip-hinge is elite for heavy loads and how Ayush and Manu setup bar paths.",
+      url: "https://www.youtube.com/embed/Opz660XU048",
+      createdAt: "02/06/2026"
+    }
+  ];
+
+  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+
+  if (isFallbackActive()) {
+    const list = getLocal<Video>('molecule_videos');
+    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
+    if (filteredList.length === 0 && list.length === 0) {
+      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
+      saveLocal('molecule_videos', activeSeeds);
+      return activeSeeds;
+    }
+    return filteredList;
+  }
+
+  const path = `videos`;
+  try {
+    const qSnapshot = await getDocs(collection(db, path));
+    const list: Video[] = [];
+    qSnapshot.forEach((doc) => {
+      const data = doc.data();
+      list.push({
+        id: data.id,
+        userId: data.userId || "",
+        uploaderName: data.uploaderName || "",
+        title: data.title || "",
+        description: data.description || "",
+        url: data.url || "",
+        createdAt: data.createdAt || ""
+      } as Video);
+    });
+
+    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
+
+    if (filteredList.length === 0 && list.length === 0) {
+      // Seed initial videos in Firestore so it's populated for other visitors
+      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
+      for (const s of activeSeeds) {
+        try {
+          await setDoc(doc(db, path, s.id), s);
+        } catch {
+          // ignore if write fails
+        }
+      }
+      return activeSeeds;
+    }
+
+    // Return the combined array, filtered by unique IDs and excluding deleted videos
+    const combined = [...filteredList, ...defaultSeeds.filter(v => !deletedIdsList.includes(v.id))];
+    return combined.filter((v, i, self) => self.findIndex(t => t.id === v.id) === i);
+  } catch (error) {
+    console.warn("Firestore query videos failed, loading static fallback:", error);
+    triggerLocalFallback();
+    const list = getLocal<Video>('molecule_videos');
+    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
+    if (filteredList.length === 0 && list.length === 0) {
+      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
+      saveLocal('molecule_videos', activeSeeds);
+      return activeSeeds;
+    }
+    return filteredList;
+  }
+}
+
+export async function deleteVideo(id: string): Promise<void> {
+  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+  if (!deletedIdsList.includes(id)) {
+    deletedIdsList.push(id);
+    localStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
+  }
+
+  // Synchronously filter out from local client cache so state reflects changes immediately
+  const list = getLocal<Video>('molecule_videos');
+  saveLocal('molecule_videos', list.filter(item => item.id !== id));
+
+  if (isFallbackActive()) {
+    return;
+  }
+  const path = `videos`;
+  try {
+    await deleteDoc(doc(db, path, id));
+  } catch (error) {
+    console.warn("Firestore delete video failed, but local copy was cleared:", error);
+    triggerLocalFallback();
+  }
+}
+
+// --- PHOTOGRAPH MANAGEMENT FUNCTIONS WITH FALLBACK ---
+
+export async function savePhotograph(photo: Omit<Photograph, 'id' | 'createdAt'>): Promise<Photograph> {
+  const id = "photo_" + Math.random().toString(36).substring(2, 11);
+  const createdAt = new Date().toLocaleDateString('en-IN');
+
+  const record: Photograph = {
+    ...photo,
+    id,
+    createdAt
+  };
+
+  if (isFallbackActive()) {
+    const list = getLocal<Photograph>('molecule_photographs');
+    list.unshift(record);
+    saveLocal('molecule_photographs', list);
+    return record;
+  }
+
+  const path = `photographs`;
+  try {
+    await setDoc(doc(db, path, id), record);
+    return record;
+  } catch (error) {
+    console.warn("Firestore save photograph failed, routing to local sandbox storage:", error);
+    triggerLocalFallback();
+    const list = getLocal<Photograph>('molecule_photographs');
+    list.unshift(record);
+    saveLocal('molecule_photographs', list);
+    return record;
+  }
+}
+
+export async function getAllPhotographs(): Promise<Photograph[]> {
+  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+
+  if (isFallbackActive()) {
+    const list = getLocal<Photograph>('molecule_photographs');
+    return list.filter(p => !deletedIdsList.includes(p.id));
+  }
+
+  const path = `photographs`;
+  try {
+    const qSnapshot = await getDocs(collection(db, path));
+    const list: Photograph[] = [];
+    qSnapshot.forEach((doc) => {
+      const data = doc.data();
+      list.push({
+        id: data.id,
+        userId: data.userId || "",
+        uploaderName: data.uploaderName || "",
+        caption: data.caption || "",
+        url: data.url || "",
+        createdAt: data.createdAt || ""
+      } as Photograph);
+    });
+
+    return list.filter(p => !deletedIdsList.includes(p.id));
+  } catch (error) {
+    console.warn("Firestore query photographs failed, loading local fallback:", error);
+    triggerLocalFallback();
+    const list = getLocal<Photograph>('molecule_photographs');
+    return list.filter(p => !deletedIdsList.includes(p.id));
+  }
+}
+
+export async function deletePhotograph(id: string): Promise<void> {
+  const deletedIdsList: string[] = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+  if (!deletedIdsList.includes(id)) {
+    deletedIdsList.push(id);
+    localStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
+  }
+
+  // Synchronously filter out database/client local caches
+  const list = getLocal<Photograph>('molecule_photographs');
+  saveLocal('molecule_photographs', list.filter(item => item.id !== id));
+
+  if (isFallbackActive()) {
+    return;
+  }
+  const path = `photographs`;
+  try {
+    await deleteDoc(doc(db, path, id));
+  } catch (error) {
+    console.warn("Firestore delete photograph failed, but local copy was cleared:", error);
+    triggerLocalFallback();
   }
 }
 

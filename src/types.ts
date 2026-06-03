@@ -136,6 +136,25 @@ export interface AttendanceRecord {
   createdAt: string;
 }
 
+export interface Video {
+  id: string;
+  userId?: string;
+  uploaderName?: string;
+  title: string;
+  description?: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface Photograph {
+  id: string;
+  userId?: string;
+  uploaderName?: string;
+  caption: string;
+  url: string;
+  createdAt: string;
+}
+
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
