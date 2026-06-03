@@ -21,6 +21,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+import redSmithMachineImg from '../assets/images/red_smith_machine_gym_1780316281034.png';
+import luxuryGymInteriorImg from '../assets/images/luxury_modern_gym_interior_1780316297950.png';
+
 interface EquipmentItem {
   id: string;
   name: string;
@@ -105,7 +108,7 @@ const EQUIPMENT_DATA: EquipmentItem[] = [
     name: 'M12 Bio-Symmetric Iso-Lateral Leg Press',
     category: 'Strength',
     categoryLabel: 'Strength / Plate-Loaded',
-    image: '/src/assets/images/red_smith_machine_gym_1780316281034.png',
+    image: redSmithMachineImg,
     primaryMuscles: ['Quadriceps', 'Glutus Maximus'],
     secondaryMuscles: ['Hamstrings', 'Adductors'],
     techSpec: 'Converging fluid motion curves aligning precisely with active knee/hip flexion vectors',
@@ -124,7 +127,7 @@ const EQUIPMENT_DATA: EquipmentItem[] = [
     name: 'Rogue Monster Squat & Power Rack Suite',
     category: 'Free Weights',
     categoryLabel: 'Free Weights',
-    image: '/src/assets/images/luxury_modern_gym_interior_1780316297950.png',
+    image: luxuryGymInteriorImg,
     primaryMuscles: ['Quadriceps', 'Glutes', 'Erector Spinae'],
     secondaryMuscles: ['Transverse Abdominis', 'Calves'],
     techSpec: 'High-tensile steel frames with computer-guided laser-cut numbering and industrial sandwich J-cups',

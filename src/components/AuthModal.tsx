@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider, firebaseConfig } from "../firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   updateProfile, 
   signInWithPopup 
 } from "firebase/auth";
-import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Sparkles } from "lucide-react";
+import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Sparkles, ExternalLink, Check } from "lucide-react";
 import { triggerLocalFallback } from "../lib/firebaseService";
 
 interface AuthModalProps {
@@ -22,6 +22,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
   const [displayName, setDisplayName] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   const handleSandboxBypassWithRole = (roleEmail: string, roleName: string) => {
     const sandboxUser = {
@@ -94,7 +95,11 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
       console.error("Google authentication failed:", error);
       // Ignore if user cancelled popup
       if (error?.code !== "auth/popup-closed-by-user") {
-        setErrorMsg(error?.message || "Google Single Sign-On failed.");
+        if (error?.code === "auth/unauthorized-domain" || (error?.message && error?.message.includes("unauthorized-domain"))) {
+          setErrorMsg("auth/unauthorized-domain");
+        } else {
+          setErrorMsg(error?.message || "Google Single Sign-On failed.");
+        }
       }
     } finally {
       setLoading(false);
@@ -138,17 +143,84 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
             </p>
           </div>
 
-          {errorMsg && (
+          {errorMsg === "auth/unauthorized-domain" ? (
+            <div className="space-y-4">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-xs p-4 sm:p-5 rounded-2xl flex flex-col space-y-3">
+                <div className="flex items-start space-x-2.5">
+                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-400" />
+                  <div className="text-left w-full">
+                    <span className="font-mono font-bold uppercase text-[9px] tracking-wider block mb-1 text-zinc-500">Firebase Auth Setting Error</span>
+                    <h4 className="text-xs sm:text-sm font-semibold text-white">auth/unauthorized-domain</h4>
+                    <p className="mt-1 leading-snug text-zinc-300 text-xs">
+                      Firebase has blocked the Google Sign-In request because this specific preview URL path isn't registered in your project's authorized domains list.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-zinc-800/80 pt-3 mt-1.5 space-y-2.5 text-left">
+                  <span className="text-[10px] uppercase font-mono font-bold text-red-400 tracking-wider block">How to enable in 45 seconds:</span>
+                  <ol className="text-xs text-zinc-350 list-decimal list-inside space-y-1.5 leading-relaxed">
+                    <li>
+                      Go to the {" "}
+                      <a 
+                        href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="text-red-400 hover:text-red-300 hover:underline inline-flex items-center gap-1 font-medium bg-red-950/15 border border-red-900/30 px-1.5 py-0.5 rounded"
+                      >
+                        <span>Firebase Authentication Settings</span>
+                        <ExternalLink className="h-3 w-3 inline" />
+                      </a>
+                    </li>
+                    <li>Click on the <strong className="text-white">"Authorized Domains"</strong> tab.</li>
+                    <li>Click <strong className="text-white">"Add domain"</strong> and register this preview URL's host:</li>
+                  </ol>
+
+                  <div className="space-y-1.5 mt-2">
+                    <div className="bg-zinc-950 border border-zinc-850 px-3 py-2 rounded-xl text-xs font-mono flex items-center justify-between text-zinc-300">
+                      <span className="select-all truncate mr-2 font-mono text-[11px] text-zinc-400">{window.location.hostname}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const domain = window.location.hostname;
+                          navigator.clipboard.writeText(domain);
+                          setCopiedDomain(true);
+                          setTimeout(() => setCopiedDomain(false), 2000);
+                        }}
+                        className="text-[10px] text-red-400 hover:text-red-350 bg-red-950/20 px-2 py-1 rounded border border-red-900/35 cursor-pointer font-bold select-none shrink-0 flex items-center space-x-1"
+                      >
+                        {copiedDomain ? <Check className="h-3 w-3" /> : null}
+                        <span>{copiedDomain ? "Copied!" : "Copy"}</span>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-[10px] text-zinc-500 leading-normal font-sans pt-1">
+                    💡 Due to sandboxed development, you can also completely bypass this cloud verification by using the bypass button below or clicking on one of the Quick Sandbox buttons.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSandboxBypass}
+                className="w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 hover:text-amber-300 text-xs py-3 px-4 rounded-xl font-bold font-mono tracking-wide transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+              >
+                <Sparkles className="h-4 w-4 text-amber-400" />
+                <span>Bypass with Sandbox Session</span>
+              </button>
+            </div>
+          ) : errorMsg ? (
             <div className="space-y-3">
               <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs p-3.5 rounded-xl flex flex-col space-y-2">
                 <div className="flex items-start space-x-2.5">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-400" />
-                  <div>
+                  <div className="text-left">
                     <span className="font-mono font-bold uppercase text-[9px] tracking-wider block mb-0.5 text-zinc-500">Firebase Event Log</span>
                     <p className="leading-snug text-zinc-300">{errorMsg}</p>
                   </div>
                 </div>
-                <p className="text-[10px] text-zinc-550 leading-relaxed font-sans border-t border-rose-500/10 pt-1.5">
+                <p className="text-[10px] text-zinc-550 leading-relaxed font-sans border-t border-rose-500/10 pt-1.5 text-left">
                   💡 Due to sandbox preview limitations, you can bypass cloud sync & test authentication, admin dashboards and scheduling instantly in local-persisted Sandbox Storage.
                 </p>
               </div>
@@ -161,7 +233,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
                 <span>Bypass with Sandbox Session</span>
               </button>
             </div>
-          )}
+          ) : null}
 
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {isSignUp && (
