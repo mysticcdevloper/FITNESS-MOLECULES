@@ -321,15 +321,44 @@ export default function GallerySection() {
     return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.includes('embed');
   };
 
-  const getEmbedUrl = (url: string) => {
+  const getYouTubeId = (url: string) => {
+    if (!url) return null;
     if (url.includes('youtube.com/watch?v=')) {
-      const id = url.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${id}`;
+      return url.split('v=')[1]?.split('&')[0];
     }
     if (url.includes('youtu.be/')) {
-      const id = url.split('youtu.be/')[1]?.split('?')[0];
-      return `https://www.youtube.com/embed/${id}`;
+      return url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
     }
+    if (url.includes('youtube.com/shorts/')) {
+      return url.split('shorts/')[1]?.split('?')[0]?.split('&')[0];
+    }
+    if (url.includes('youtube.com/embed/')) {
+      return url.split('embed/')[1]?.split('?')[0]?.split('&')[0];
+    }
+    return null;
+  };
+
+  const getYouTubeThumbnail = (url: string) => {
+    const id = getYouTubeId(url);
+    if (id) {
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    return null;
+  };
+
+  const getEmbedUrl = (url: string) => {
+    const ytId = getYouTubeId(url);
+    if (ytId) {
+      // Use youtube-nocookie to bypass strict iframe cookie policies on production builds
+      return `https://www.youtube-nocookie.com/embed/${ytId}`;
+    }
+
+    if (url.includes('vimeo.com/') && !url.includes('player.vimeo.com')) {
+      const parts = url.split('vimeo.com/');
+      const id = parts[parts.length - 1]?.split('?')[0]?.split('&')[0];
+      if (id) return `https://player.vimeo.com/video/${id}`;
+    }
+
     return url;
   };
 
@@ -796,24 +825,41 @@ export default function GallerySection() {
                       {/* Video Thumbnail Placeholder/Visual layout */}
                       <div className="relative aspect-video rounded-xl bg-zinc-950 overflow-hidden flex items-center justify-center border border-zinc-850 mb-4 group-hover:border-zinc-800">
                         {isEmbedUrl(vid.url) ? (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            {/* Standard fallback card graphics */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950" />
-                            <div className="absolute h-12 w-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 group-hover:scale-105 transition-transform">
-                              <Play className="h-6 w-6 ml-0.5" />
+                          <div className="absolute inset-0">
+                            {getYouTubeThumbnail(vid.url) ? (
+                              <>
+                                <img
+                                  src={getYouTubeThumbnail(vid.url)!}
+                                  alt={vid.title}
+                                  className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <div className="absolute inset-0 bg-zinc-950/40" />
+                              </>
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950" />
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 group-hover:scale-110 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 shadow-md">
+                                <Play className="h-6 w-6 ml-0.5" />
+                              </div>
                             </div>
-                            <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-black/80 rounded font-mono text-[9px] tracking-wide text-zinc-400">YOUTUBE WALK</span>
+                            <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-black/85 rounded font-mono text-[9px] tracking-wide text-zinc-400 border border-zinc-800">
+                              {vid.url.includes('vimeo') ? 'VIMEO WALK' : 'YOUTUBE WALK'}
+                            </span>
                           </div>
                         ) : (
                           <div className="absolute inset-0">
                             {/* Locally rendered video tag paused as generic thumbnail */}
                             <DynamicVideo url={vid.url} isThumbnail={true} className="w-full h-full object-cover opacity-75 pointer-events-none" />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              <div className="h-12 w-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                              <div className="h-12 w-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                                 <Play className="h-6 w-6 ml-1" />
                               </div>
                             </div>
-                            <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/20 rounded font-mono text-[9px] tracking-wide">RAW STREAM</span>
+                            <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-red-500/25 border border-red-500/20 text-red-400 rounded font-mono text-[9px] tracking-wide uppercase">
+                              {vid.url.startsWith('indexeddb://') ? 'LOCAL SANDBOX' : 'RAW STREAM'}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1241,8 +1287,8 @@ export default function GallerySection() {
                       onChange={(e) => setLinkUrl(e.target.value)}
                       className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500/40 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-sans focus:outline-none transition-colors text-white"
                     />
-                    <span className="text-[10px] text-zinc-500 leading-normal block">
-                      Supports direct YouTube video links, Vimeo clips, or raw MP4 web feeds.
+                    <span className="text-[10px] text-zinc-400 leading-normal block">
+                      💡 <strong>RECOMMENDED FOR VERCEL & INTERNET:</strong> Paste any standard YouTube URL (including Shorts), Vimeo link, or public static MP4 link. These will automatically convert to safe, embeddable streaming iframes.
                     </span>
                   </div>
                 ) : (
@@ -1297,6 +1343,10 @@ export default function GallerySection() {
                           </p>
                         </>
                       )}
+                    </div>
+
+                    <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 text-[10px] text-amber-400 leading-normal font-sans">
+                      ⚠️ <strong>NOTE:</strong> Local file uploads are stored securely inside your browser's IndexedDB engine. They are visible on this computer but will <strong>not</strong> load for other visitors on Vercel. For global distribution on the internet, please select <strong>Social/Web Link</strong> state and paste a YouTube or Vimeo clip!
                     </div>
                   </div>
                 )}
