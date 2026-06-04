@@ -593,6 +593,22 @@ export async function getAllVideos(): Promise<Video[]> {
       description: "A comprehensive physical walkthrough demonstrating our state-of-the-art training zones, premium high-load machines, and vibrant athlete workout energy.",
       url: "https://www.youtube.com/embed/LK97h_8ILP8",
       createdAt: "04/06/2026"
+    },
+    {
+      id: "vid_4",
+      uploaderName: "Aaru",
+      title: "Gym Floor Core Exercises",
+      description: "A selection of highly effective core training stability and strength movements demonstrated right on our gym training floor.",
+      url: "https://www.youtube.com/embed/HTyZODkhdAM",
+      createdAt: "04/06/2026"
+    },
+    {
+      id: "vid_5",
+      uploaderName: "Aaru",
+      title: "EXERCISE OVERVIEW BY AARU",
+      description: "Step-by-step guidance on execution, standard posture adjustment, and peak contraction mechanics for superior strength results.",
+      url: "https://www.youtube.com/embed/IqFnJSPX5Dc",
+      createdAt: "04/06/2026"
     }
   ];
 
