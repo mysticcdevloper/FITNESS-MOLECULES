@@ -571,22 +571,6 @@ export async function saveVideo(video: Omit<Video, 'id' | 'createdAt'>): Promise
 export async function getAllVideos(): Promise<Video[]> {
   const defaultSeeds: Video[] = [
     {
-      id: "vid_1",
-      uploaderName: "Ayush",
-      title: "Biomechanical Squat Form Breakdown",
-      description: "Detailed biomechanical walkthrough of standard squat alignment, loading the target quadriceps optimally while completely safeguarding joint integrity and postural health.",
-      url: "https://www.youtube.com/embed/U5zrloYWp8g",
-      createdAt: "01/06/2026"
-    },
-    {
-      id: "vid_2",
-      uploaderName: "Manu",
-      title: "Perfecting Romanian Deadlifts (RDL)",
-      description: "Demonstration of perfect hamstring and glute recruitment mechanics. Learn why the hip-hinge is elite for heavy loads and how Ayush and Manu setup bar paths.",
-      url: "https://www.youtube.com/embed/Opz660XU048",
-      createdAt: "02/06/2026"
-    },
-    {
       id: "vid_3",
       uploaderName: "Co-Founders",
       title: "FITNESS MOLECULES GYM OVERVIEW",
@@ -621,13 +605,11 @@ export async function getAllVideos(): Promise<Video[]> {
 
   if (isFallbackActive()) {
     const list = getLocal<Video>('molecule_videos');
-    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
-    if (filteredList.length === 0 && list.length === 0) {
-      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
-      saveLocal('molecule_videos', activeSeeds);
-      return activeSeeds;
-    }
-    return filteredList;
+    // Filter out old legacy seeded videos if they are cached in user localStorage to prevent obsolete items
+    const userOnlyList = list.filter(v => !v.id.startsWith('vid_'));
+    const filteredList = userOnlyList.filter(v => !deletedIdsList.includes(v.id));
+    const combined = [...filteredList, ...defaultSeeds.filter(v => !deletedIdsList.includes(v.id))];
+    return combined.filter((v, i, self) => self.findIndex(t => t.id === v.id) === i);
   }
 
   const path = `videos`;
@@ -659,13 +641,10 @@ export async function getAllVideos(): Promise<Video[]> {
     console.warn("Firestore query videos failed, loading static fallback:", error);
     triggerLocalFallback();
     const list = getLocal<Video>('molecule_videos');
-    const filteredList = list.filter(v => !deletedIdsList.includes(v.id));
-    if (filteredList.length === 0 && list.length === 0) {
-      const activeSeeds = defaultSeeds.filter(v => !deletedIdsList.includes(v.id));
-      saveLocal('molecule_videos', activeSeeds);
-      return activeSeeds;
-    }
-    return filteredList;
+    const userOnlyList = list.filter(v => !v.id.startsWith('vid_'));
+    const filteredList = userOnlyList.filter(v => !deletedIdsList.includes(v.id));
+    const combined = [...filteredList, ...defaultSeeds.filter(v => !deletedIdsList.includes(v.id))];
+    return combined.filter((v, i, self) => self.findIndex(t => t.id === v.id) === i);
   }
 }
 
