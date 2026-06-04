@@ -585,6 +585,14 @@ export async function getAllVideos(): Promise<Video[]> {
       description: "Demonstration of perfect hamstring and glute recruitment mechanics. Learn why the hip-hinge is elite for heavy loads and how Ayush and Manu setup bar paths.",
       url: "https://www.youtube.com/embed/Opz660XU048",
       createdAt: "02/06/2026"
+    },
+    {
+      id: "vid_3",
+      uploaderName: "Co-Founders",
+      title: "FITNESS MOLECULES GYM OVERVIEW",
+      description: "A comprehensive physical walkthrough demonstrating our state-of-the-art training zones, premium high-load machines, and vibrant athlete workout energy.",
+      url: "https://www.youtube.com/embed/LK97h_8ILP8",
+      createdAt: "04/06/2026"
     }
   ];
 
