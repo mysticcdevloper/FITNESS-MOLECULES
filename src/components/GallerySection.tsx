@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GALLERY_IMGS } from '../data/gymData';
+import { GALLERY_IMGS, TRANSFORMATION_IMGS } from '../data/gymData';
 import { 
   Eye, 
   X, 
@@ -231,7 +231,7 @@ function DynamicImage({ url, alt, className, referrerPolicy }: DynamicImageProps
 }
 
 export default function GallerySection() {
-  const [activeTab, setActiveTab] = useState<'photos' | 'videos'>('photos');
+  const [activeTab, setActiveTab] = useState<'photos' | 'transformations' | 'videos'>('transformations');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedCaption, setSelectedCaption] = useState<string>('');
 
@@ -629,20 +629,30 @@ export default function GallerySection() {
 
         {/* Tab Switcher & Action Section */}
         <div className="flex flex-col sm:flex-row items-center justify-between border-b border-zinc-800/80 pb-6 mb-10 gap-4">
-          <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl">
+          <div className="flex flex-wrap bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl gap-1">
             <button
               onClick={() => setActiveTab('photos')}
-              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium tracking-wide uppercase transition-all duration-250 cursor-pointer ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium tracking-wide uppercase transition-all duration-250 cursor-pointer ${
                 activeTab === 'photos'
                   ? 'bg-red-500 text-white font-bold shadow-lg shadow-red-500/10'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Photographs ({visibleStaticPhotos.length + customPhotos.length})
+              Facility Photos ({visibleStaticPhotos.length + customPhotos.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('transformations')}
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium tracking-wide uppercase transition-all duration-250 cursor-pointer ${
+                activeTab === 'transformations'
+                  ? 'bg-red-500 text-white font-bold shadow-lg shadow-red-500/10'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Transformations ({TRANSFORMATION_IMGS.length})
             </button>
             <button
               onClick={() => setActiveTab('videos')}
-              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium tracking-wide uppercase transition-all duration-250 cursor-pointer ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-medium tracking-wide uppercase transition-all duration-250 cursor-pointer ${
                 activeTab === 'videos'
                   ? 'bg-red-500 text-white font-bold shadow-lg shadow-red-500/10'
                   : 'text-zinc-400 hover:text-white'
@@ -785,6 +795,47 @@ export default function GallerySection() {
                   </h4>
                   <span className="text-[10px] font-mono tracking-widest text-zinc-400 mt-1 uppercase block">
                     ARENA CORE TEMPLATE
+                  </span>
+                </div>
+
+                {/* Caption Bottom bar (mobile visible) */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-950/90 to-transparent p-4 sm:hidden">
+                  <span className="text-xs text-white text-sans font-medium line-clamp-1">{img.caption}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* --- TRANSFORMATIONS GRID TAB --- */}
+        {activeTab === 'transformations' && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+            {TRANSFORMATION_IMGS.map((img, i) => (
+              <div
+                key={`transformation-${i}`}
+                onClick={() => openLightbox(img.url, img.caption)}
+                className="group relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-900/60 aspect-4/3 shadow-md"
+                id={`gallery-transformation-item-${i}`}
+              >
+                <img
+                  src={img.url}
+                  alt={img.caption}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                  referrerPolicy="no-referrer"
+                />
+                
+                {/* Overlay on Hover */}
+                <div className="absolute inset-0 bg-zinc-950/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
+                  <div className="flex items-center space-x-3 mb-2.5">
+                    <div className="bg-red-500 text-white p-2.5 rounded-full scale-75 group-hover:scale-100 transition-transform duration-300">
+                      <ZoomIn className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <h4 className="text-white font-medium text-base font-display px-4 tracking-wide font-bold uppercase transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
+                    {img.caption}
+                  </h4>
+                  <span className="text-[10px] font-mono tracking-widest text-red-500 mt-2 uppercase block font-bold border border-red-500/20 bg-red-500/10 px-2 py-0.5 rounded">
+                    MEMBER GLOW-UP
                   </span>
                 </div>
 

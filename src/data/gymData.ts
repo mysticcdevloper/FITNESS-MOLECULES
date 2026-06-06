@@ -4,7 +4,6 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
-import photo1 from '../assets/images/regenerated_image_1780740727366.jpg';
 import photo2 from '../assets/images/regenerated_image_1780741070414.jpg';
 import photo3 from '../assets/images/regenerated_image_1780741072272.jpg';
 import photo4 from '../assets/images/regenerated_image_1780741074220.jpg';
@@ -13,7 +12,7 @@ import photo6 from '../assets/images/regenerated_image_1780741077989.jpg';
 import photo7 from '../assets/images/regenerated_image_1780741080120.jpg';
 import photo8 from '../assets/images/regenerated_image_1780741081907.jpg';
 import photo9 from '../assets/images/regenerated_image_1780741083603.jpg';
-import photo10 from '../assets/images/photo_motivation_zone_1780719243351.png';
+import photo11 from '../assets/images/regenerated_image_1780743704526.jpg';
 import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg';
 
 export const GYM_LOCATION = {
@@ -257,45 +256,43 @@ export const WORKOUT_PROGRAMS: WorkoutProgram[] = [
   }
 ];
 
-export const GALLERY_IMGS = [
-  {
-    url: photo1,
-    caption: "Transform Your Body, Transform Your Life"
-  },
+export const GALLERY_IMGS: { url: string; caption: string }[] = [];
+
+export const TRANSFORMATION_IMGS = [
   {
     url: photo2,
-    caption: "Where Strength Meets Dedication"
+    caption: "Transforming Pain into Power"
   },
   {
     url: photo3,
-    caption: "Train Hard. Stay Strong."
+    caption: "The Best Project Is Me"
   },
   {
     url: photo4,
-    caption: "Fitness Beyond Limits"
+    caption: "From Ordinary to Extraordinary"
   },
   {
     url: photo5,
-    caption: "Building Better Bodies Every Day"
+    caption: "Progress You Can’t Ignore"
   },
   {
     url: photo6,
-    caption: "Your Fitness Journey Starts Here"
+    caption: "Built Through Consistency"
   },
   {
     url: photo7,
-    caption: "Elevate Your Fitness Game"
+    caption: "Stronger Than My Excuses"
   },
   {
     url: photo8,
-    caption: "Stronger Every Single Day"
+    caption: "The Glow-Up Is Real"
   },
   {
     url: photo9,
-    caption: "Push Beyond Your Limits"
+    caption: "Becoming the Person I Promised I'd Be"
   },
   {
-    url: photo10,
-    caption: "Fitness Motivation Zone"
+    url: photo11,
+    caption: "Every Rep Changed Me"
   }
 ];
