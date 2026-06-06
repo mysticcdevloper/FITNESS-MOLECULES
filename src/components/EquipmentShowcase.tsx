@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Dumbbell, 
   Settings, 
@@ -21,8 +21,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-import redSmithMachineImg from '../assets/images/red_smith_machine_gym_1780316281034.png';
-import luxuryGymInteriorImg from '../assets/images/luxury_modern_gym_interior_1780316297950.png';
+const redSmithMachineImg = '/assets/images/red_smith_machine_gym_1780316281034.png';
+const luxuryGymInteriorImg = '/assets/images/luxury_modern_gym_interior_1780316297950.png';
 
 interface EquipmentItem {
   id: string;
@@ -42,8 +42,18 @@ interface EquipmentItem {
 
 // Fallback component when image fails to load or during pending state
 const EquipmentImage: React.FC<{ src: string; alt: string; category: string }> = ({ src, alt, category }) => {
+  const [currentSrc, setCurrentSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [fallbackAttempted, setFallbackAttempted] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Synchronize with prop changes
+  useEffect(() => {
+    setCurrentSrc(src);
+    setHasError(false);
+    setFallbackAttempted(false);
+    setLoading(true);
+  }, [src]);
 
   const getCategoryIcon = () => {
     switch (category) {
@@ -55,6 +65,23 @@ const EquipmentImage: React.FC<{ src: string; alt: string; category: string }> =
         return <Gauge className="h-10 w-10 text-red-500 stroke-[1.25]" />;
       default:
         return <Dumbbell className="h-10 w-10 text-red-500 stroke-[1.25]" />;
+    }
+  };
+
+  const handleError = () => {
+    if (!fallbackAttempted) {
+      setFallbackAttempted(true);
+      const isCardio = category === 'Cardio' || alt.toLowerCase().includes('cardio');
+      const isSmith = alt.toLowerCase().includes('smith') || alt.toLowerCase().includes('machine');
+      const fallbackUrl = isSmith 
+        ? 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80'
+        : isCardio 
+          ? 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80'
+          : 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=800&q=80';
+      setCurrentSrc(fallbackUrl);
+    } else {
+      setHasError(true);
+      setLoading(false);
     }
   };
 
@@ -71,13 +98,13 @@ const EquipmentImage: React.FC<{ src: string; alt: string; category: string }> =
 
       {!hasError ? (
         <img
-          src={src}
+          src={currentSrc}
           alt={alt}
           className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-104 ${
             loading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
           }`}
           onLoad={() => setLoading(false)}
-          onError={() => setHasError(true)}
+          onError={handleError}
           referrerPolicy="no-referrer"
         />
       ) : (

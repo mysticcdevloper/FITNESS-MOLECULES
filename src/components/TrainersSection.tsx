@@ -7,6 +7,7 @@ import React from 'react';
 import { TRAINERS } from '../data/gymData';
 import { Trainer } from '../types';
 import { Star, Award, CircleDot, Mail, CalendarDays } from 'lucide-react';
+import SafeGymImage from './SafeGymImage';
 
 interface TrainersSectionProps {
   onBookTrainerClick: (trainer: Trainer) => void;
@@ -40,11 +41,11 @@ export default function TrainersSection({ onBookTrainerClick }: TrainersSectionP
             >
               {/* Profile Photo */}
               <div className="relative h-72 w-full overflow-hidden">
-                <img
+                <SafeGymImage
                   src={trainer.photo}
                   alt={trainer.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
+                  categoryHint="TRAINERS"
                 />
                 {/* Visual Gradient to dark */}
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent"></div>

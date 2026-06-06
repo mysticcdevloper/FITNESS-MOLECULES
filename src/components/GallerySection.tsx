@@ -35,6 +35,7 @@ import { storeLocalVideoBlob, deleteLocalVideoBlob, getLocalVideoBlob } from '..
 import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob } from '../lib/imageStorage';
 import { Video, Photograph, isAdminEmail } from '../types';
 import { Camera, Image as ImageIcon } from 'lucide-react';
+import SafeGymImage from './SafeGymImage';
 
 interface DynamicVideoProps {
   url: string;
@@ -749,11 +750,10 @@ export default function GallerySection() {
                 className="group relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-900/60 aspect-4/3 shadow-md"
                 id={`gallery-item-${i}`}
               >
-                <img
+                <SafeGymImage
                   src={img.url}
                   alt={img.caption}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
-                  referrerPolicy="no-referrer"
                 />
                 
                 {/* Overlay on Hover */}
@@ -1024,11 +1024,10 @@ export default function GallerySection() {
               className="max-w-4xl w-full flex flex-col relative max-h-[85vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <SafeGymImage
                 src={selectedImage}
                 alt={selectedCaption}
                 className="w-full h-auto max-h-[75vh] object-contain rounded-2xl mx-auto shadow-2xl border border-zinc-900"
-                referrerPolicy="no-referrer"
               />
               {selectedCaption && (
                 <div className="text-center mt-4">
