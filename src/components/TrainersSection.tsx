@@ -31,11 +31,11 @@ export default function TrainersSection({ onBookTrainerClick }: TrainersSectionP
         </div>
 
         {/* Trainers Grid Layout */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className={TRAINERS.length === 1 ? "flex justify-center" : "grid md:grid-cols-2 lg:grid-cols-3 gap-8"}>
           {TRAINERS.map((trainer) => (
             <div
               key={trainer.id}
-              className="bg-zinc-900 border border-zinc-900 rounded-3xl overflow-hidden shadow-xl hover:border-zinc-800 hover:bg-zinc-900/60 transition-all duration-300 flex flex-col group"
+              className="bg-zinc-900 border border-zinc-900 rounded-3xl overflow-hidden shadow-xl hover:border-zinc-800 hover:bg-zinc-900/60 transition-all duration-300 flex flex-col group max-w-md w-full"
               id={`trainer-card-${trainer.id}`}
             >
               {/* Profile Photo */}

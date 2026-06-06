@@ -4,14 +4,17 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
-import galleryImg1 from '../assets/images/regenerated_image_1780331545800.jpg';
-import galleryImg2 from '../assets/images/regenerated_image_1780331550279.jpg';
-import galleryImg3 from '../assets/images/regenerated_image_1780331548236.jpg';
-import galleryImg4 from '../assets/images/regenerated_image_1780331543674.jpg';
-import galleryImgNew0 from '../assets/images/regenerated_image_1780414719576.jpg';
-import galleryImgNew5 from '../assets/images/regenerated_image_1780414717917.jpg';
-import galleryOwnersReal from '../assets/images/regenerated_image_1780491806425.jpg';
-import galleryOwnersTraining from '../assets/images/ayush_and_manu_1780320170219.png';
+import photo1 from '../assets/images/regenerated_image_1780720187155.jpg';
+import photo2 from '../assets/images/regenerated_image_1780720189759.jpg';
+import photo3 from '../assets/images/regenerated_image_1780720192253.jpg';
+import photo4 from '../assets/images/regenerated_image_1780720194815.jpg';
+import photo5 from '../assets/images/regenerated_image_1780720197170.jpg';
+import photo6 from '../assets/images/regenerated_image_1780720200469.jpg';
+import photo7 from '../assets/images/regenerated_image_1780720202534.jpg';
+import photo8 from '../assets/images/regenerated_image_1780720204642.jpg';
+import photo9 from '../assets/images/regenerated_image_1780720206393.jpg';
+import photo10 from '../assets/images/regenerated_image_1780720208416.jpg';
+import ayushTrainerImg from '../assets/images/regenerated_image_1780721073235.jpg';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -29,36 +32,21 @@ export const GYM_LOCATION = {
 export const TRAINERS: Trainer[] = [
   {
     id: "t1",
-    name: "Dr. Kabir Malhotra",
-    role: "Elite Head Trainer & Physiotherapist",
-    photo: "https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=600&q=80",
-    experience: "12+ Years",
-    rating: 4.9,
-    specializations: ["Kinesiology", "Injury Rehabilitation", "Hypertrophy", "Posture Correction"],
-    biography: "Holding a doctorate in physical therapy, Dr. Kabir combines science-backed training protocols with clinical biomechanics to maximize muscle gain safely.",
-    schedule: ["06:00 AM", "08:00 AM", "10:00 AM", "04:00 PM", "06:00 PM"]
-  },
-  {
-    id: "t3",
-    name: "Ananya Sen",
-    role: "Advanced Yoga & Pilates Instructor",
-    photo: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80",
-    experience: "7 Years",
-    rating: 4.9,
-    specializations: ["Ashtanga Yoga", "Mobility Drills", "Core Stability", "Meditation & Mindfulness"],
-    biography: "Ananya trained in Rishikesh and has spent years crafting customized mobility programs that improve joint longevity, cognitive clarity, and athletic performance.",
-    schedule: ["06:00 AM", "08:00 AM", "10:45 AM", "04:30 PM", "06:00 PM"]
-  },
-  {
-    id: "t4",
-    name: "Vikram Rathore",
-    role: "Athletic Conditioning & Boxing Coach",
-    photo: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=600&q=80",
-    experience: "10 Years",
-    rating: 4.8,
-    specializations: ["Cardio Kickboxing", "Agility Drills", "Fat Oxidation", "HIIT Training"],
-    biography: "Vikram is a former state boxing gold-medalist who translates competitive boxing training into fierce, high-energy fat-loss workouts.",
-    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "03:00 PM", "05:00 PM", "07:00 PM"]
+    name: "MASTER TRAINER AYUSH PAL",
+    role: "DIETICIAN & NUTRITIONIST",
+    photo: ayushTrainerImg,
+    experience: "15+ YEARS",
+    rating: 5.0,
+    specializations: [
+      "GGI CERTIFIED",
+      "ACE CERTIFIED",
+      "SPORTS NUTRITION",
+      "ADVANCED BIOLOGY EXPERTS",
+      "CPR/AED CERTIFIED",
+      "DIETICIAN & NUTRITIONIST"
+    ],
+    biography: "CERTIFIED BY MANY ELITE FITNESS INSTITUTES INCLUDING GGI, ACE, SPORTS NUTRITION, ADVANCED BIOLOGY EXPERTS, AND CPR/AED. AYUSH PAL IS A PREMIER DIETICIAN AND NUTRITIONIST WHO CALIBRATES ACTIVE MUSCLE LOADING AND NUTRITIONAL ARCHITECTURE FOR ULTIMATE PERFORMANCE.",
+    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "04:30 PM", "06:00 PM", "08:00 PM"]
   }
 ];
 
@@ -72,7 +60,7 @@ export const CLASSES: GymClass[] = [
     level: "Intermediate",
     description: "Scientifically structured progressive overload sessions targeting compound and isolation movements for maximum athletic hypertrophy and bone density.",
     scheduleTimes: ["Mon/Wed/Fri - 06:00 AM", "Mon/Wed/Fri - 05:00 PM", "Mon/Wed/Fri - 07:00 PM"],
-    trainers: [TRAINERS[0]] // Dr. Kabir Malhotra
+    trainers: [TRAINERS[0]] // Ayush Pal
   },
   {
     id: "c2",
@@ -83,7 +71,7 @@ export const CLASSES: GymClass[] = [
     level: "Advanced",
     description: "High-intensity metabolic conditioning (MetCon) utilizing kettlebells, plyometric boxes, ropes, and rowers for elite cardiovascular endurance.",
     scheduleTimes: ["Tue/Thu/Sat - 07:00 AM", "Tue/Thu/Sat - 06:00 PM"],
-    trainers: [TRAINERS[2]] // Vikram Rathore
+    trainers: [TRAINERS[0]] // Ayush Pal
   },
   {
     id: "c3",
@@ -94,7 +82,7 @@ export const CLASSES: GymClass[] = [
     level: "All Levels",
     description: "Uniting physical postures (Asanas) with controlled breathwork (Pranayama) to accelerate recovery, release muscle tension, and lower cortisol levels.",
     scheduleTimes: ["Mon/Wed/Fri - 08:00 AM", "Tue/Thu - 04:30 PM"],
-    trainers: [TRAINERS[1], TRAINERS[0]] // Ananya Sen, Dr. Kabir Malhotra (injury prevention element)
+    trainers: [TRAINERS[0]] // Ayush Pal
   },
   {
     id: "c4",
@@ -105,7 +93,7 @@ export const CLASSES: GymClass[] = [
     level: "Beginner",
     description: "A fast-paced shadowboxing and heavy-bag workout incorporating agile floor work to shred calorie reservoirs and improve focus, coordination, and reflex times.",
     scheduleTimes: ["Tue/Thu/Sat - 05:00 PM", "Mon/Wed/Fri - 09:00 AM"],
-    trainers: [TRAINERS[2]] // Vikram Rathore
+    trainers: [TRAINERS[0]] // Ayush Pal
   }
 ];
 
@@ -240,7 +228,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: "test3",
     name: "Amir Khan",
     role: "Competitive Runner",
-    quote: "The combination of Vikram's conditioning guidance and structured diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
+    quote: "The combination of personalized conditioning guidance and structured diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
   }
@@ -278,35 +266,43 @@ export const WORKOUT_PROGRAMS: WorkoutProgram[] = [
 
 export const GALLERY_IMGS = [
   {
-    url: galleryOwnersReal,
-    caption: "Co-Founders Ayush & Manu - Biomechanical Focus"
+    url: photo1,
+    caption: "Transform Your Body, Transform Your Life"
   },
   {
-    url: galleryImgNew0,
-    caption: "Premium Heavy Loading Zone"
+    url: photo2,
+    caption: "Where Strength Meets Dedication"
   },
   {
-    url: galleryImg1,
-    caption: "Functional CrossFit Training Turf"
+    url: photo3,
+    caption: "Train Hard. Stay Strong."
   },
   {
-    url: galleryImg2,
-    caption: "Cardio Rowing and Treadmill Deck"
+    url: photo4,
+    caption: "Fitness Beyond Limits"
   },
   {
-    url: galleryOwnersTraining,
-    caption: "Elite Heavy Powerlifting Rack Suite"
+    url: photo5,
+    caption: "Building Better Bodies Every Day"
   },
   {
-    url: galleryImg3,
-    caption: "Dynamic Boxing & Bag Station"
+    url: photo6,
+    caption: "Your Fitness Journey Starts Here"
   },
   {
-    url: galleryImg4,
-    caption: "Pristine Dressing and Shower Suites"
+    url: photo7,
+    caption: "Elevate Your Fitness Game"
   },
   {
-    url: galleryImgNew5,
-    caption: "Zen Stretching Yoga Area"
+    url: photo8,
+    caption: "Stronger Every Single Day"
+  },
+  {
+    url: photo9,
+    caption: "Push Beyond Your Limits"
+  },
+  {
+    url: photo10,
+    caption: "Fitness Motivation Zone"
   }
 ];
