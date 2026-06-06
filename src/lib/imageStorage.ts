@@ -39,6 +39,73 @@ export async function storeLocalImageBlob(id: string, file: File): Promise<strin
 }
 
 /**
+ * Compresses any image file client-side and converts it to a standard, lightweight Base64 JPEG data URL.
+ * Under 1MB makes it safely storable in Google Firestore so it uploads globally to everyone on the internet.
+ */
+export function compressAndConvertToBase64(file: File, maxDimension: number = 1000, quality: number = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Downscale proportional to maxDimension
+          if (width > height) {
+            if (width > maxDimension) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            }
+          } else {
+            if (height > maxDimension) {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error("Could not acquire 2D canvas context for image scaling."));
+            return;
+          }
+
+          // Render scaled image to canvas
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Export as compressed jpeg quality data URL
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedBase64);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      
+      img.onerror = () => {
+        reject(new Error("Unable to parse selected image file. Please check format."));
+      };
+      
+      if (e.target?.result) {
+        img.src = e.target.result as string;
+      } else {
+        reject(new Error("Failed to read image source."));
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(new Error("Failed reading the local photograph."));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Retrieves a locally stored image file from IndexedDB as a File object.
  */
 export async function getLocalImageBlob(id: string): Promise<File | null> {

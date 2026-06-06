@@ -32,7 +32,7 @@ import {
   deletePhotograph
 } from '../lib/firebaseService';
 import { storeLocalVideoBlob, deleteLocalVideoBlob, getLocalVideoBlob } from '../lib/videoStorage';
-import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob } from '../lib/imageStorage';
+import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob, compressAndConvertToBase64 } from '../lib/imageStorage';
 import { Video, Photograph, isAdminEmail } from '../types';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import SafeGymImage from './SafeGymImage';
@@ -568,8 +568,9 @@ export default function GallerySection() {
       let finalUrl = photoLinkUrl;
       
       if (photoUploadType === 'file' && photoFile) {
-        const localId = "img_blob_" + Math.random().toString(36).substring(2, 11);
-        finalUrl = await storeLocalImageBlob(localId, photoFile);
+        // Compress and convert local file to a standard Base64 JPEG data URL
+        // This ensures the uploaded file is fully synced to Firestore and visible to everyone on the internet.
+        finalUrl = await compressAndConvertToBase64(photoFile);
       }
 
       await savePhotograph({

@@ -6,7 +6,7 @@
 import React from 'react';
 import { Sparkles, Award, ShieldCheck, Heart, Facebook, Instagram, Youtube } from 'lucide-react';
 import SafeGymImage from './SafeGymImage';
-const ownerImg = '/assets/images/regenerated_image_1780324236893.jpg';
+const ownerImg = '/assets/images/ayush_and_manu_real_1780320603243.png';
 
 export default function OwnersSection() {
   return (
