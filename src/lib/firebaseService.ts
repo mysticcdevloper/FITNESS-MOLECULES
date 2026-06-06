@@ -714,9 +714,10 @@ export async function savePhotograph(photo: Omit<Photograph, 'id' | 'createdAt'>
 }
 
 export async function getAllPhotographs(): Promise<Photograph[]> {
-  let deletedIdsList: string[] = [];
+  let deletedIdsList: string[] = ['photo_7bq5815ci'];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+    const saved = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+    deletedIdsList = [...deletedIdsList, ...saved];
   } catch {
     // Safe fallback
   }

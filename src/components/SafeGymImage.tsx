@@ -88,6 +88,13 @@ export default function SafeGymImage({ src, alt, className = 'w-full h-full obje
     setFallbackAttempted(false);
     setLoading(true);
     setRetryCount(0);
+
+    // Safety timeout to prevent any infinite loading/buffering indicators
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [src]);
 
   const handleError = () => {

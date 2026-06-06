@@ -85,10 +85,15 @@ function DynamicVideo({ url, className, controls, autoPlay, muted, playsInline, 
       }
     };
 
+    const safetyTimer = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 1500);
+
     loadVideo();
 
     return () => {
       active = false;
+      clearTimeout(safetyTimer);
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -197,10 +202,15 @@ function DynamicImage({ url, alt, className, referrerPolicy }: DynamicImageProps
       }
     };
 
+    const safetyTimer = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 1500);
+
     loadImage();
 
     return () => {
       active = false;
+      clearTimeout(safetyTimer);
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -654,7 +664,7 @@ export default function GallerySection() {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Photographs ({visibleStaticPhotos.length + customPhotos.length})
+              Photographs ({visibleStaticPhotos.length + customPhotos.filter(img => img.id !== 'photo_7bq5815ci').length})
             </button>
             <button
               onClick={() => setActiveTab('videos')}
@@ -744,7 +754,7 @@ export default function GallerySection() {
         {activeTab === 'photos' && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Custom Admin-Uploaded Photos */}
-            {customPhotos.map((img) => (
+            {customPhotos.filter(img => img.id !== 'photo_7bq5815ci').map((img) => (
               <div
                 key={img.id}
                 onClick={() => openLightbox(img.url, img.caption)}

@@ -4,17 +4,17 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
-const photo1 = '/assets/images/photo_body_transform_1780719098318.png';
-const photo2 = '/assets/images/photo_strength_dedication_1780719121173.png';
-const photo3 = '/assets/images/photo_train_hard_1780719139740.png';
-const photo4 = '/assets/images/photo_beyond_limits_1780719153347.png';
-const photo5 = '/assets/images/photo_building_bodies_1780719167008.png';
-const photo6 = '/assets/images/photo_journey_starts_1780719182143.png';
-const photo7 = '/assets/images/photo_fitness_game_1780719197997.png';
-const photo8 = '/assets/images/photo_stronger_daily_1780719216567.png';
-const photo9 = '/assets/images/photo_push_limits_1780719229705.png';
-const photo10 = '/assets/images/photo_motivation_zone_1780719243351.png';
-const ayushTrainerImg = '/assets/images/ayush_and_manu_real_1780320603243.png';
+const photo1 = '/assets/images/regenerated_image_1780720187155.jpg';
+const photo2 = '/assets/images/regenerated_image_1780720189759.jpg';
+const photo3 = '/assets/images/regenerated_image_1780720192253.jpg';
+const photo4 = '/assets/images/regenerated_image_1780720194815.jpg';
+const photo5 = '/assets/images/regenerated_image_1780720197170.jpg';
+const photo6 = '/assets/images/regenerated_image_1780720200469.jpg';
+const photo7 = '/assets/images/regenerated_image_1780720202534.jpg';
+const photo8 = '/assets/images/regenerated_image_1780720204642.jpg';
+const photo9 = '/assets/images/regenerated_image_1780720206393.jpg';
+const photo10 = '/assets/images/regenerated_image_1780720208416.jpg';
+const ayushTrainerImg = '/assets/images/regenerated_image_1780731617944.jpg';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -291,18 +291,18 @@ export const GALLERY_IMGS = [
   },
   {
     url: photo7,
-    caption: "Elevate Your Fitness Game"
+    caption: "Unleash Your Inner Strength"
   },
   {
     url: photo8,
-    caption: "Stronger Every Single Day"
+    caption: "Elevate Your Fitness Game"
   },
   {
     url: photo9,
-    caption: "Push Beyond Your Limits"
+    caption: "Stronger Every Single Day"
   },
   {
     url: photo10,
-    caption: "Fitness Motivation Zone"
+    caption: "Push Beyond Your Limits"
   }
 ];

@@ -398,7 +398,7 @@ export default function App() {
       />
 
       {/* Sandbox Fallback Mode Banner */}
-      {isFallbackActive() && (
+      {isFallbackActive() && activeTab === 'admin' && (
         <div className="bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs py-3 px-5 flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl mx-auto mt-4 rounded-2xl animate-in fade-in duration-300">
           <div className="flex items-center space-x-2.5">
             <span className="relative flex h-2 w-2">

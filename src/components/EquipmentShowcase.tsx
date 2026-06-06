@@ -53,6 +53,13 @@ const EquipmentImage: React.FC<{ src: string; alt: string; category: string }> =
     setHasError(false);
     setFallbackAttempted(false);
     setLoading(true);
+
+    // Safety timeout to prevent any infinite loading/buffering indicators
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [src]);
 
   const getCategoryIcon = () => {
