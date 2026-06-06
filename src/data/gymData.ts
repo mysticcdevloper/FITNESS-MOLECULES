@@ -4,17 +4,17 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
-import photo1 from '../assets/images/regenerated_image_1780720187155.jpg';
-import photo2 from '../assets/images/regenerated_image_1780720189759.jpg';
-import photo3 from '../assets/images/regenerated_image_1780720192253.jpg';
-import photo4 from '../assets/images/regenerated_image_1780720194815.jpg';
-import photo5 from '../assets/images/regenerated_image_1780720197170.jpg';
-import photo6 from '../assets/images/regenerated_image_1780720200469.jpg';
-import photo7 from '../assets/images/regenerated_image_1780720202534.jpg';
-import photo8 from '../assets/images/regenerated_image_1780720204642.jpg';
-import photo9 from '../assets/images/regenerated_image_1780720206393.jpg';
-import photo10 from '../assets/images/regenerated_image_1780720208416.jpg';
-import ayushTrainerImg from '../assets/images/regenerated_image_1780721073235.jpg';
+const photo1 = '/assets/images/regenerated_image_1780720187155.jpg';
+const photo2 = '/assets/images/regenerated_image_1780720189759.jpg';
+const photo3 = '/assets/images/regenerated_image_1780720192253.jpg';
+const photo4 = '/assets/images/regenerated_image_1780720194815.jpg';
+const photo5 = '/assets/images/regenerated_image_1780720197170.jpg';
+const photo6 = '/assets/images/regenerated_image_1780720200469.jpg';
+const photo7 = '/assets/images/regenerated_image_1780720202534.jpg';
+const photo8 = '/assets/images/regenerated_image_1780720204642.jpg';
+const photo9 = '/assets/images/regenerated_image_1780720206393.jpg';
+const photo10 = '/assets/images/regenerated_image_1780720208416.jpg';
+const ayushTrainerImg = '/assets/images/regenerated_image_1780721073235.jpg';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",

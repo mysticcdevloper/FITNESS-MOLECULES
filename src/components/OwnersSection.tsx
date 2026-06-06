@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Sparkles, Award, ShieldCheck, Heart, Facebook, Instagram, Youtube } from 'lucide-react';
-import ownerImg from '../assets/images/regenerated_image_1780324236893.jpg';
+const ownerImg = '/assets/images/regenerated_image_1780324236893.jpg';
 
 export default function OwnersSection() {
   return (

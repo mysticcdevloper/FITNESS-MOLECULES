@@ -21,8 +21,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-import redSmithMachineImg from '../assets/images/red_smith_machine_gym_1780316281034.png';
-import luxuryGymInteriorImg from '../assets/images/luxury_modern_gym_interior_1780316297950.png';
+const redSmithMachineImg = '/assets/images/red_smith_machine_gym_1780316281034.png';
+const luxuryGymInteriorImg = '/assets/images/luxury_modern_gym_interior_1780316297950.png';
 
 interface EquipmentItem {
   id: string;
