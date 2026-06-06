@@ -397,43 +397,6 @@ export default function App() {
         }}
       />
 
-      {/* Sandbox Fallback Mode Banner */}
-      {isFallbackActive() && activeTab === 'admin' && (
-        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs py-3 px-5 flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl mx-auto mt-4 rounded-2xl animate-in fade-in duration-300">
-          <div className="flex items-center space-x-2.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-            <div>
-              <span className="font-mono uppercase tracking-wider font-bold text-amber-400 mr-2">Developer Sandbox Active</span>
-              <span className="text-zinc-400">Photos and bookings are stored locally in this browser. To save them on the public internet, open the app in a separate tab, log in/sign in with your account, and hit Sync.</span>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button 
-              type="button"
-              onClick={() => {
-                window.open(window.location.href, '_blank');
-              }}
-              className="text-[10px] font-mono tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-amber-300 px-3.5 py-1.5 rounded-lg border border-amber-500/25 uppercase cursor-pointer transition-all active:scale-95 flex items-center space-x-1"
-            >
-              <span>Open in New Tab ↗</span>
-            </button>
-            <button 
-              type="button"
-              onClick={() => {
-                disableLocalFallback();
-                window.location.reload();
-              }}
-              className="text-[10px] font-mono tracking-widest font-bold bg-amber-500 hover:bg-amber-400 text-black px-4 py-1.5 rounded-lg uppercase cursor-pointer transition-colors"
-            >
-              Reconnect Live Cloud
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* RENDER ACTIVE TAB */}
       {activeTab === 'home' && (
         <div className="animate-in fade-in duration-300">

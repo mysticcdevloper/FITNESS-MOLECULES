@@ -4,17 +4,17 @@
  */
 
 import { Trainer, GymClass, MembershipPlan, TransformationStory, Testimonial, WorkoutProgram } from '../types';
-const photo1 = '/assets/images/regenerated_image_1780720187155.jpg';
-const photo2 = '/assets/images/regenerated_image_1780720189759.jpg';
-const photo3 = '/assets/images/regenerated_image_1780720192253.jpg';
-const photo4 = '/assets/images/regenerated_image_1780720194815.jpg';
-const photo5 = '/assets/images/regenerated_image_1780720197170.jpg';
-const photo6 = '/assets/images/regenerated_image_1780720200469.jpg';
-const photo7 = '/assets/images/regenerated_image_1780720202534.jpg';
-const photo8 = '/assets/images/regenerated_image_1780720204642.jpg';
-const photo9 = '/assets/images/regenerated_image_1780720206393.jpg';
-const photo10 = '/assets/images/regenerated_image_1780720208416.jpg';
-const ayushTrainerImg = '/assets/images/regenerated_image_1780731617944.jpg';
+import photo1 from '../assets/images/regenerated_image_1780740727366.jpg';
+import photo2 from '../assets/images/regenerated_image_1780741070414.jpg';
+import photo3 from '../assets/images/regenerated_image_1780741072272.jpg';
+import photo4 from '../assets/images/regenerated_image_1780741074220.jpg';
+import photo5 from '../assets/images/regenerated_image_1780741076013.jpg';
+import photo6 from '../assets/images/regenerated_image_1780741077989.jpg';
+import photo7 from '../assets/images/regenerated_image_1780741080120.jpg';
+import photo8 from '../assets/images/regenerated_image_1780741081907.jpg';
+import photo9 from '../assets/images/regenerated_image_1780741083603.jpg';
+import photo10 from '../assets/images/photo_motivation_zone_1780719243351.png';
+import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
@@ -31,22 +31,15 @@ export const GYM_LOCATION = {
 
 export const TRAINERS: Trainer[] = [
   {
-    id: "t1",
-    name: "MASTER TRAINER AYUSH PAL",
-    role: "DIETICIAN & NUTRITIONIST",
-    photo: ayushTrainerImg,
-    experience: "15+ YEARS",
+    id: "t0",
+    name: "Master Trainer Ayush Pal",
+    role: "Founding Master Trainer, Dietician & Nutritionist",
+    photo: ayushPalPhoto,
+    experience: "10+ Years",
     rating: 5.0,
-    specializations: [
-      "GGI CERTIFIED",
-      "ACE CERTIFIED",
-      "SPORTS NUTRITION",
-      "ADVANCED BIOLOGY EXPERTS",
-      "CPR/AED CERTIFIED",
-      "DIETICIAN & NUTRITIONIST"
-    ],
-    biography: "CERTIFIED BY MANY ELITE FITNESS INSTITUTES INCLUDING GGI, ACE, SPORTS NUTRITION, ADVANCED BIOLOGY EXPERTS, AND CPR/AED. AYUSH PAL IS A PREMIER DIETICIAN AND NUTRITIONIST WHO CALIBRATES ACTIVE MUSCLE LOADING AND NUTRITIONAL ARCHITECTURE FOR ULTIMATE PERFORMANCE.",
-    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "04:30 PM", "06:00 PM", "08:00 PM"]
+    specializations: ["GGI", "ACE", "Sports Nutrition", "Advanced Biology Experts", "CPR/AED", "Dietetics", "Clinical Nutrition"],
+    biography: "Certified by multiple premier international academies, featuring credentials across GGI, ACE, Sports Nutrition, Advanced Biology Experts, and CPR/AED. As our resident elite Dietician and Nutritionist, Ayush specializes in combining advanced physiology benchmarks with science-backed cell hypertrophy load mapping.",
+    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "11:00 AM", "05:00 PM", "07:00 PM", "09:00 PM"]
   }
 ];
 
@@ -60,7 +53,7 @@ export const CLASSES: GymClass[] = [
     level: "Intermediate",
     description: "Scientifically structured progressive overload sessions targeting compound and isolation movements for maximum athletic hypertrophy and bone density.",
     scheduleTimes: ["Mon/Wed/Fri - 06:00 AM", "Mon/Wed/Fri - 05:00 PM", "Mon/Wed/Fri - 07:00 PM"],
-    trainers: [TRAINERS[0]] // Ayush Pal
+    trainers: [TRAINERS[0]]
   },
   {
     id: "c2",
@@ -71,7 +64,7 @@ export const CLASSES: GymClass[] = [
     level: "Advanced",
     description: "High-intensity metabolic conditioning (MetCon) utilizing kettlebells, plyometric boxes, ropes, and rowers for elite cardiovascular endurance.",
     scheduleTimes: ["Tue/Thu/Sat - 07:00 AM", "Tue/Thu/Sat - 06:00 PM"],
-    trainers: [TRAINERS[0]] // Ayush Pal
+    trainers: [TRAINERS[0]]
   },
   {
     id: "c3",
@@ -82,7 +75,7 @@ export const CLASSES: GymClass[] = [
     level: "All Levels",
     description: "Uniting physical postures (Asanas) with controlled breathwork (Pranayama) to accelerate recovery, release muscle tension, and lower cortisol levels.",
     scheduleTimes: ["Mon/Wed/Fri - 08:00 AM", "Tue/Thu - 04:30 PM"],
-    trainers: [TRAINERS[0]] // Ayush Pal
+    trainers: [TRAINERS[0]]
   },
   {
     id: "c4",
@@ -93,7 +86,7 @@ export const CLASSES: GymClass[] = [
     level: "Beginner",
     description: "A fast-paced shadowboxing and heavy-bag workout incorporating agile floor work to shred calorie reservoirs and improve focus, coordination, and reflex times.",
     scheduleTimes: ["Tue/Thu/Sat - 05:00 PM", "Mon/Wed/Fri - 09:00 AM"],
-    trainers: [TRAINERS[0]] // Ayush Pal
+    trainers: [TRAINERS[0]]
   }
 ];
 
@@ -178,8 +171,8 @@ export const TRANSFORMATION_STORIES: TransformationStory[] = [
     duration: "6 Months",
     photoBefore: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=400&q=80",
     photoAfter: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80",
-    testimonial: "The precise scientific guidance by MASTER TRAINER AYUSH PAL on joint loads made my heavy fat-loss safe. Fitness Molecule didn't just help me drop weight; it fixed my lower-back pain completely.",
-    goal: "Fat Loss & Spine Decompression"
+    testimonial: "The precise scientific guidance by Ayush on calorie pacing made my heavy fat-loss safe and active. Fitness Molecule didn't just help me drop weight; it fixed my metabolism completely.",
+    goal: "Fat Loss & Posture Alignment"
   },
   {
     id: "story2",
@@ -190,7 +183,7 @@ export const TRANSFORMATION_STORIES: TransformationStory[] = [
     duration: "4 Months",
     photoBefore: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80",
     photoAfter: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80",
-    testimonial: "Struggling with high metabolism, I couldn't put on muscle. MASTER TRAINER AYUSH PAL's clinical biomechanics strategy and nutritional programming helped me build muscle and feel incredibly energetic.",
+    testimonial: "Struggling with high metabolism, I couldn't put on muscle. Ayush's clinical dieting strategy and active hypertrophy programming helped me build muscle and feel incredibly energetic.",
     goal: "Lean Muscle Hypertrophy"
   },
   {
@@ -291,18 +284,18 @@ export const GALLERY_IMGS = [
   },
   {
     url: photo7,
-    caption: "Unleash Your Inner Strength"
-  },
-  {
-    url: photo8,
     caption: "Elevate Your Fitness Game"
   },
   {
-    url: photo9,
+    url: photo8,
     caption: "Stronger Every Single Day"
   },
   {
-    url: photo10,
+    url: photo9,
     caption: "Push Beyond Your Limits"
+  },
+  {
+    url: photo10,
+    caption: "Fitness Motivation Zone"
   }
 ];

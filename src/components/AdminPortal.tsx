@@ -21,8 +21,7 @@ import {
   disableLocalFallback,
   saveAttendance,
   getAllAttendance,
-  deleteAttendance,
-  syncSandboxToLiveCloud
+  deleteAttendance
 } from '../lib/firebaseService';
 import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord } from '../types';
 import { 
@@ -62,51 +61,6 @@ export default function AdminPortal() {
   // Form controlling states
   const [showAddForm, setShowAddForm] = useState(false);
   const [addType, setAddType] = useState<'membership' | 'trainer' | 'class' | 'enquiry' | 'attendance'>('membership');
-
-  // Sandbox data synchronizing states
-  const [unsyncedCount, setUnsyncedCount] = useState(0);
-  const [syncingData, setSyncingData] = useState(false);
-  const [syncSuccessMsg, setSyncSuccessMsg] = useState("");
-
-  const checkUnsyncedData = () => {
-    try {
-      const p = JSON.parse(localStorage.getItem('molecule_photographs') || '[]');
-      const r = JSON.parse(localStorage.getItem('molecule_registrations') || '[]');
-      const t = JSON.parse(localStorage.getItem('molecule_trainerBookings') || '[]');
-      const c = JSON.parse(localStorage.getItem('molecule_classBookings') || '[]');
-      const e = JSON.parse(localStorage.getItem('molecule_enquiries') || '[]');
-      const a = JSON.parse(localStorage.getItem('molecule_attendance') || '[]').filter((item: any) => item && item.id && !item.id.toString().startsWith("att_"));
-      const v = JSON.parse(localStorage.getItem('molecule_videos') || '[]').filter((item: any) => item && item.id && !item.id.toString().startsWith("vid_"));
-      
-      setUnsyncedCount(p.length + r.length + t.length + c.length + e.length + a.length + v.length);
-    } catch {
-      setUnsyncedCount(0);
-    }
-  };
-
-  const handleSyncToLiveCloud = async () => {
-    setSyncingData(true);
-    setSyncSuccessMsg("");
-    try {
-      const currentSandboxUser = localStorage.getItem('molecule_sandbox_user');
-      const email = currentSandboxUser 
-        ? JSON.parse(currentSandboxUser).email 
-        : 'admin@molecule.fit';
-      
-      const res = await syncSandboxToLiveCloud(email);
-      const total = res.photographsSynced + res.registrationsSynced + res.trainerBookingsSynced + res.classBookingsSynced + res.enquiriesSynced + res.attendanceSynced + res.videosSynced;
-      setSyncSuccessMsg(`Partially synchronised ${total} offline records with live database (including ${res.photographsSynced} photographs)! Everyone list can view them now.`);
-      checkUnsyncedData();
-      
-      // Reload admin states
-      await fetchData();
-    } catch (err: any) {
-      console.error(err);
-      alert("Sync failed: " + (err.message || err));
-    } finally {
-      setSyncingData(false);
-    }
-  };
 
   // New Membership Form State
   const [mPlanId, setMPlanId] = useState('p1');
@@ -176,7 +130,6 @@ export default function AdminPortal() {
 
   useEffect(() => {
     fetchData();
-    checkUnsyncedData();
   }, []);
 
   // Update session selection state when selection matches another class
@@ -428,7 +381,7 @@ export default function AdminPortal() {
         </div>
 
         {isFallbackActive() && (
-          <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-300">
+          <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl mb-8 flex flex-col md:flex-row items-col md:items-center justify-between gap-4 animate-in fade-in duration-300">
             <div className="flex items-start space-x-3.5">
               <div className="bg-amber-500/10 p-2 rounded-xl text-amber-400 mt-0.5 md:mt-0 shrink-0">
                 <Sparkles className="h-5 w-5 animate-pulse" />
@@ -436,9 +389,7 @@ export default function AdminPortal() {
               <div>
                 <h4 className="text-sm font-bold text-amber-400 font-mono uppercase tracking-wide">Developer Sandbox Mode Active</h4>
                 <p className="text-xs text-zinc-400 leading-relaxed mt-1">
-                  This application is currently writing athlete registrations and scheduling telemetry to the browser’s Local Sandbox Session. Under sandbox environments, this bypasses dynamic domain authorization limits.
-                  <strong className="text-amber-300 block mt-1">💡 Make Changes Visible to Everyone on Internet:</strong> 
-                  Chrome and Safari block secure database connection inside integrated preview frames. To fix this, click to <button type="button" onClick={() => window.open(window.location.href, '_blank')} className="text-white text-xs underline font-bold bg-amber-500/20 px-2 py-0.5 rounded ml-1 hover:bg-amber-500/30 cursor-pointer border-0">Open Gym App in New Tab ↗</button>, log in with your account there, and sync!
+                  This application is currently writing athlete registrations and scheduling telemetry to the browser’s Local Sandbox Session. Under sandbox environments, this bypasses dynamic domain authorization limits. To sync everything live onto production Google Cloud, add your preview URL inside your Firebase Console settings.
                 </p>
               </div>
             </div>
@@ -450,32 +401,6 @@ export default function AdminPortal() {
               className="px-4 py-2 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition-colors uppercase shrink-0 font-mono tracking-wider cursor-pointer"
             >
               🔄 Reconnect Live Cloud
-            </button>
-          </div>
-        )}
-
-        {!isFallbackActive() && unsyncedCount > 0 && (
-          <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-3xl mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-300">
-            <div className="flex items-start space-x-3.5">
-              <div className="bg-red-500/20 p-2 rounded-xl text-red-400 mt-0.5 md:mt-0 shrink-0">
-                <Sparkles className="h-5 w-5 animate-pulse text-red-550" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-red-400 font-mono uppercase tracking-wide">Unsynced Local Sandbox Data Detected ({unsyncedCount} items)</h4>
-                <p className="text-xs text-zinc-300 leading-relaxed mt-1">
-                  You have offline actions, bookings, or photographs saved on this browser's Sandbox. Since you are now connected to the Live Google Cloud, click the <strong>"Sync Live to Internet"</strong> button to upload them, making them visible to all visitors on the web!
-                </p>
-                {syncSuccessMsg && (
-                  <p className="text-xs text-emerald-400 font-mono mt-1.5 font-bold animate-pulse">{syncSuccessMsg}</p>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={handleSyncToLiveCloud}
-              disabled={syncingData}
-              className="px-5 py-2.5 bg-red-650 hover:bg-red-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all uppercase shrink-0 font-mono tracking-wider cursor-pointer shadow-lg shadow-red-500/10 active:scale-98"
-            >
-              {syncingData ? "Syncing..." : "📤 Sync Live to Internet"}
             </button>
           </div>
         )}

@@ -5,8 +5,7 @@
 
 import React from 'react';
 import { Sparkles, Award, ShieldCheck, Heart, Facebook, Instagram, Youtube } from 'lucide-react';
-import SafeGymImage from './SafeGymImage';
-const ownerImg = '/assets/images/ayush_and_manu_real_1780320603243.png';
+import ownerImg from '../assets/images/regenerated_image_1780324236893.jpg';
 
 export default function OwnersSection() {
   return (
@@ -41,11 +40,11 @@ export default function OwnersSection() {
             {/* Glass-styled container frame */}
             <div className="relative bg-zinc-900 border border-zinc-800 rounded-[22px] overflow-hidden p-2.5 shadow-2xl w-full">
               <div className="relative aspect-auto rounded-[16px] overflow-hidden bg-zinc-950 flex justify-center items-center">
-                <SafeGymImage 
+                <img 
                   src={ownerImg} 
                   alt="Ayush and Manu - Founders of Fitness Molecule" 
                   className="w-full h-auto max-h-[360px] object-contain rounded-[14px] transition-transform duration-700 group-hover:scale-[1.02] filter brightness-105"
-                  categoryHint="FOUNDERS"
+                  referrerPolicy="no-referrer"
                 />
                 
                 {/* Visual subtle shadow gradient */}

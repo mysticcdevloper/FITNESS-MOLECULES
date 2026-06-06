@@ -29,15 +29,12 @@ import {
   deleteVideo,
   savePhotograph,
   getAllPhotographs,
-  deletePhotograph,
-  isFallbackActive,
-  disableLocalFallback
+  deletePhotograph
 } from '../lib/firebaseService';
 import { storeLocalVideoBlob, deleteLocalVideoBlob, getLocalVideoBlob } from '../lib/videoStorage';
-import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob, compressAndConvertToBase64 } from '../lib/imageStorage';
+import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob } from '../lib/imageStorage';
 import { Video, Photograph, isAdminEmail } from '../types';
 import { Camera, Image as ImageIcon } from 'lucide-react';
-import SafeGymImage from './SafeGymImage';
 
 interface DynamicVideoProps {
   url: string;
@@ -85,15 +82,10 @@ function DynamicVideo({ url, className, controls, autoPlay, muted, playsInline, 
       }
     };
 
-    const safetyTimer = setTimeout(() => {
-      if (active) setLoading(false);
-    }, 1500);
-
     loadVideo();
 
     return () => {
       active = false;
-      clearTimeout(safetyTimer);
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -202,15 +194,10 @@ function DynamicImage({ url, alt, className, referrerPolicy }: DynamicImageProps
       }
     };
 
-    const safetyTimer = setTimeout(() => {
-      if (active) setLoading(false);
-    }, 1500);
-
     loadImage();
 
     return () => {
       active = false;
-      clearTimeout(safetyTimer);
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -288,10 +275,6 @@ export default function GallerySection() {
 
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
-  // States to track local sandbox photographs
-  const [localPhotosCount, setLocalPhotosCount] = useState<number>(0);
-  const [syncingLocalPhotos, setSyncingLocalPhotos] = useState<boolean>(false);
-
   // Load all videos from database / fallback
   const fetchVideos = async () => {
     setLoadingVideos(true);
@@ -321,14 +304,6 @@ export default function GallerySection() {
   useEffect(() => {
     fetchVideos();
     fetchPhotos();
-
-    // Check offline photographs count
-    try {
-      const local = JSON.parse(localStorage.getItem('molecule_photographs') || '[]');
-      setLocalPhotosCount(local.length);
-    } catch {
-      // safe fallthrough
-    }
   }, []);
 
   const openLightbox = (url: string, caption: string) => {
@@ -592,9 +567,8 @@ export default function GallerySection() {
       let finalUrl = photoLinkUrl;
       
       if (photoUploadType === 'file' && photoFile) {
-        // Compress and convert local file to a standard Base64 JPEG data URL
-        // This ensures the uploaded file is fully synced to Firestore and visible to everyone on the internet.
-        finalUrl = await compressAndConvertToBase64(photoFile);
+        const localId = "img_blob_" + Math.random().toString(36).substring(2, 11);
+        finalUrl = await storeLocalImageBlob(localId, photoFile);
       }
 
       await savePhotograph({
@@ -664,7 +638,7 @@ export default function GallerySection() {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Photographs ({visibleStaticPhotos.length + customPhotos.filter(img => img.id !== 'photo_7bq5815ci').length})
+              Photographs ({visibleStaticPhotos.length + customPhotos.length})
             </button>
             <button
               onClick={() => setActiveTab('videos')}
@@ -679,38 +653,7 @@ export default function GallerySection() {
           </div>
 
           {activeTab === 'photos' && isAdmin && (
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              {localPhotosCount > 0 && !isFallbackActive() && (
-                <button
-                  type="button"
-                  disabled={syncingLocalPhotos}
-                  onClick={async () => {
-                    setSyncingLocalPhotos(true);
-                    try {
-                      const local = JSON.parse(localStorage.getItem('molecule_photographs') || '[]');
-                      for (const p of local) {
-                        await savePhotograph({
-                          caption: p.caption,
-                          url: p.url,
-                          uploaderName: p.uploaderName || 'Administrator'
-                        });
-                      }
-                      localStorage.removeItem('molecule_photographs');
-                      setLocalPhotosCount(0);
-                      await fetchPhotos();
-                    } catch (err) {
-                      console.error("Failed to sync local photographs:", err);
-                    } finally {
-                      setSyncingLocalPhotos(false);
-                    }
-                  }}
-                  className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono text-xs rounded-xl border border-red-500/20 hover:border-red-500/40 cursor-pointer flex items-center space-x-1.5 transition-all shadow-md active:scale-98 disabled:opacity-50"
-                  title="Make all offline photographs you uploaded on this browser live for everyone on the internet!"
-                >
-                  <Sparkles className={`h-4 w-4 text-red-500 ${syncingLocalPhotos ? 'animate-spin' : 'animate-pulse'}`} />
-                  <span>{syncingLocalPhotos ? 'SYNCING...' : `SYNC OFFLINE IMAGES LIVE (${localPhotosCount})`}</span>
-                </button>
-              )}
+            <div className="flex items-center space-x-3 shrink-0">
               {deletedStaticUrls.length > 0 && (
                 <button
                   type="button"
@@ -754,7 +697,7 @@ export default function GallerySection() {
         {activeTab === 'photos' && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Custom Admin-Uploaded Photos */}
-            {customPhotos.filter(img => img.id !== 'photo_7bq5815ci').map((img) => (
+            {customPhotos.map((img) => (
               <div
                 key={img.id}
                 onClick={() => openLightbox(img.url, img.caption)}
@@ -806,10 +749,11 @@ export default function GallerySection() {
                 className="group relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-900/60 aspect-4/3 shadow-md"
                 id={`gallery-item-${i}`}
               >
-                <SafeGymImage
+                <img
                   src={img.url}
                   alt={img.caption}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                  referrerPolicy="no-referrer"
                 />
                 
                 {/* Overlay on Hover */}
@@ -1080,10 +1024,11 @@ export default function GallerySection() {
               className="max-w-4xl w-full flex flex-col relative max-h-[85vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <SafeGymImage
+              <img
                 src={selectedImage}
                 alt={selectedCaption}
                 className="w-full h-auto max-h-[75vh] object-contain rounded-2xl mx-auto shadow-2xl border border-zinc-900"
+                referrerPolicy="no-referrer"
               />
               {selectedCaption && (
                 <div className="text-center mt-4">
