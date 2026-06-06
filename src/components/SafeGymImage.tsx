@@ -24,8 +24,8 @@ function getUnsplashFallback(url: string, alt: string, categoryHint?: string): s
     return 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=800&q=80';
   }
   if (lowercaseAlt.includes('ayush') || lowercaseAlt.includes('manu') || lowercaseAlt.includes('owner') || lowercaseAlt.includes('founder') || lowercaseUrl.includes('ayush') || lowercaseUrl.includes('owner')) {
-    // Elegant athletic training/trainer photo
-    return 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=400&q=80';
+    // Return their main real uploaded physical photo instead of a stock photo from Unsplash of a different person!
+    return '/assets/images/ayush_and_manu_real_1780320603243.png';
   }
   if (lowercaseAlt.includes('trainer') || lowercaseAlt.includes('coach') || lowercaseUrl.includes('trainer')) {
     return 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=400&q=80';
@@ -79,6 +79,7 @@ export default function SafeGymImage({ src, alt, className = 'w-full h-full obje
   const [hasError, setHasError] = useState(false);
   const [fallbackAttempted, setFallbackAttempted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Synchronize when src prop changes
   useEffect(() => {
@@ -86,10 +87,22 @@ export default function SafeGymImage({ src, alt, className = 'w-full h-full obje
     setHasError(false);
     setFallbackAttempted(false);
     setLoading(true);
+    setRetryCount(0);
   }, [src]);
 
   const handleError = () => {
-    if (!fallbackAttempted) {
+    if (retryCount < 3) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        // Force browser to reload without hitting local browser cache if possible
+        if (src && !src.startsWith('data:')) {
+          const separator = src.includes('?') ? '&' : '?';
+          setCurrentSrc(`${src}${separator}retry-attempt=${retryCount + 1}`);
+        } else {
+          setCurrentSrc(src);
+        }
+      }, 500 * (retryCount + 1));
+    } else if (!fallbackAttempted) {
       setFallbackAttempted(true);
       const fallbackUrl = getUnsplashFallback(src, alt, categoryHint);
       setCurrentSrc(fallbackUrl);

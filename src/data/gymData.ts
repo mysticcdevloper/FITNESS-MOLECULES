@@ -14,7 +14,7 @@ const photo7 = '/assets/images/photo_fitness_game_1780719197997.png';
 const photo8 = '/assets/images/photo_stronger_daily_1780719216567.png';
 const photo9 = '/assets/images/photo_push_limits_1780719229705.png';
 const photo10 = '/assets/images/photo_motivation_zone_1780719243351.png';
-const ayushTrainerImg = '/assets/images/regenerated_image_1780721073235.jpg';
+const ayushTrainerImg = '/assets/images/ayush_and_manu_real_1780320603243.png';
 
 export const GYM_LOCATION = {
   address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
