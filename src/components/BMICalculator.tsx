@@ -40,7 +40,7 @@ export default function BMICalculator() {
       bSuggestion = 'Moderately high body fat threshold. Plan for a moderate daily negative energy balance (250-400 calories). Target athletic intervals with "Cardiac Oxygen Boxing" to trigger sustained lipid oxidation.';
     } else {
       bmiStatus = 'Obese';
-      bSuggestion = 'High metabolic resistance detected. We highly recommend Dr. Kabir\'s guided postural kinesiology combined with mild fasted walk routines. Build foundation, then scale into full-body strength splits.';
+      bSuggestion = 'High metabolic resistance detected. We highly recommend MASTER TRAINER AYUSH PAL\'s guided postural conditioning combined with mild fasted walk routines. Build foundation, then scale into full-body strength splits.';
     }
 
     setStatus(bmiStatus);

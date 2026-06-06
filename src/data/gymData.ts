@@ -178,7 +178,7 @@ export const TRANSFORMATION_STORIES: TransformationStory[] = [
     duration: "6 Months",
     photoBefore: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=400&q=80",
     photoAfter: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80",
-    testimonial: "The precise scientific guidance by Dr. Kabir on joint loads made my heavy fat-loss safe. Fitness Molecule didn't just help me drop weight; it fixed my lower-back pain completely.",
+    testimonial: "The precise scientific guidance by MASTER TRAINER AYUSH PAL on joint loads made my heavy fat-loss safe. Fitness Molecule didn't just help me drop weight; it fixed my lower-back pain completely.",
     goal: "Fat Loss & Spine Decompression"
   },
   {
@@ -190,7 +190,7 @@ export const TRANSFORMATION_STORIES: TransformationStory[] = [
     duration: "4 Months",
     photoBefore: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80",
     photoAfter: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80",
-    testimonial: "Struggling with high metabolism, I couldn't put on muscle. Dr. Kabir's clinical biomechanics strategy and nutritional programming helped me build muscle and feel incredibly energetic.",
+    testimonial: "Struggling with high metabolism, I couldn't put on muscle. MASTER TRAINER AYUSH PAL's clinical biomechanics strategy and nutritional programming helped me build muscle and feel incredibly energetic.",
     goal: "Lean Muscle Hypertrophy"
   },
   {
