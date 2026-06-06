@@ -224,6 +224,26 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
                   💡 Due to sandbox preview limitations, you can bypass cloud sync & test authentication, admin dashboards and scheduling instantly in local-persisted Sandbox Storage.
                 </p>
               </div>
+
+              {(errorMsg.includes("network-request-failed") || errorMsg.toLowerCase().includes("failed")) && (
+                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs p-4 rounded-xl space-y-2 text-left">
+                  <h5 className="font-bold text-[11px] text-amber-400 uppercase tracking-wide">💡 FIX: Chrome IFrame Cookie Shield Blocked</h5>
+                  <p className="text-[11px] leading-relaxed text-zinc-300">
+                    Your browser has restricted cross-origin Google single sign-on inside our integrated editing iframe. 
+                    <strong> This is easily solved!</strong> Click below to open this application in a separate tab, where full connection to the internet works beautifully.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.open(window.location.href, '_blank');
+                    }}
+                    className="w-full bg-amber-500 text-black text-[10px] font-mono tracking-wider uppercase font-bold py-2 rounded-lg hover:bg-amber-400 transition-colors cursor-pointer select-none"
+                  >
+                    🚀 Open Gym App in New Tab
+                  </button>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleSandboxBypass}

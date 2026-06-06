@@ -29,7 +29,9 @@ import {
   deleteVideo,
   savePhotograph,
   getAllPhotographs,
-  deletePhotograph
+  deletePhotograph,
+  isFallbackActive,
+  disableLocalFallback
 } from '../lib/firebaseService';
 import { storeLocalVideoBlob, deleteLocalVideoBlob, getLocalVideoBlob } from '../lib/videoStorage';
 import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob, compressAndConvertToBase64 } from '../lib/imageStorage';
@@ -276,6 +278,10 @@ export default function GallerySection() {
 
   const photoFileInputRef = useRef<HTMLInputElement>(null);
 
+  // States to track local sandbox photographs
+  const [localPhotosCount, setLocalPhotosCount] = useState<number>(0);
+  const [syncingLocalPhotos, setSyncingLocalPhotos] = useState<boolean>(false);
+
   // Load all videos from database / fallback
   const fetchVideos = async () => {
     setLoadingVideos(true);
@@ -305,6 +311,14 @@ export default function GallerySection() {
   useEffect(() => {
     fetchVideos();
     fetchPhotos();
+
+    // Check offline photographs count
+    try {
+      const local = JSON.parse(localStorage.getItem('molecule_photographs') || '[]');
+      setLocalPhotosCount(local.length);
+    } catch {
+      // safe fallthrough
+    }
   }, []);
 
   const openLightbox = (url: string, caption: string) => {
@@ -655,7 +669,38 @@ export default function GallerySection() {
           </div>
 
           {activeTab === 'photos' && isAdmin && (
-            <div className="flex items-center space-x-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              {localPhotosCount > 0 && !isFallbackActive() && (
+                <button
+                  type="button"
+                  disabled={syncingLocalPhotos}
+                  onClick={async () => {
+                    setSyncingLocalPhotos(true);
+                    try {
+                      const local = JSON.parse(localStorage.getItem('molecule_photographs') || '[]');
+                      for (const p of local) {
+                        await savePhotograph({
+                          caption: p.caption,
+                          url: p.url,
+                          uploaderName: p.uploaderName || 'Administrator'
+                        });
+                      }
+                      localStorage.removeItem('molecule_photographs');
+                      setLocalPhotosCount(0);
+                      await fetchPhotos();
+                    } catch (err) {
+                      console.error("Failed to sync local photographs:", err);
+                    } finally {
+                      setSyncingLocalPhotos(false);
+                    }
+                  }}
+                  className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono text-xs rounded-xl border border-red-500/20 hover:border-red-500/40 cursor-pointer flex items-center space-x-1.5 transition-all shadow-md active:scale-98 disabled:opacity-50"
+                  title="Make all offline photographs you uploaded on this browser live for everyone on the internet!"
+                >
+                  <Sparkles className={`h-4 w-4 text-red-500 ${syncingLocalPhotos ? 'animate-spin' : 'animate-pulse'}`} />
+                  <span>{syncingLocalPhotos ? 'SYNCING...' : `SYNC OFFLINE IMAGES LIVE (${localPhotosCount})`}</span>
+                </button>
+              )}
               {deletedStaticUrls.length > 0 && (
                 <button
                   type="button"
