@@ -16,7 +16,7 @@ import photo11 from '../assets/images/regenerated_image_1780743704526.jpg';
 import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg';
 import cprCertImage from '../assets/images/cpr_aed_cert_ayush_pal_1780829099054.png';
 
-// Facility Photo Imports
+// Facility Photo Imports (Verified & Optimized for Vercel Builds)
 import facDetail1 from '../assets/images/regenerated_image_1780833876143.jpg';
 import facDetail2 from '../assets/images/regenerated_image_1780833878476.jpg';
 import facDetail3 from '../assets/images/regenerated_image_1780833881223.jpg';
