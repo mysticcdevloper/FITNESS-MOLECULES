@@ -308,10 +308,19 @@ export default function GallerySection() {
     const loadAndCleanup = async () => {
       await fetchPhotos();
       try {
-        await deletePhotograph('photo_wpwchyl7o');
+        const idsToPurge = [
+          'photo_wpwchyl7o',
+          'photo_qtqoh95ai',
+          'photo_te34zbnpy',
+          'photo_cukdwoowi',
+          'photo_lmpr2bvmq'
+        ];
+        for (const id of idsToPurge) {
+          await deletePhotograph(id);
+        }
         await fetchPhotos();
       } catch (err) {
-        console.error("Auto-purge photo_wpwchyl7o error:", err);
+        console.error("Auto-purge photos error:", err);
       }
     };
     

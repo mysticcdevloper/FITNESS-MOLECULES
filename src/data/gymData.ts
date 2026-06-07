@@ -17,18 +17,18 @@ import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg'
 import cprCertImage from '../assets/images/cpr_aed_cert_ayush_pal_1780829099054.png';
 
 // Facility Photo Imports (Verified & Optimized for Vercel Builds)
-import facDetail1 from '../assets/images/luxury_modern_gym_interior_1780316297950.png';
-import facDetail2 from '../assets/images/red_smith_machine_gym_1780316281034.png';
-import facDetail3 from '../assets/images/photo_train_hard_1780719139740.png';
-import facDetail4 from '../assets/images/photo_strength_dedication_1780719121173.png';
-import facDetail5 from '../assets/images/photo_push_limits_1780719229705.png';
-import facDetail6 from '../assets/images/photo_motivation_zone_1780719243351.png';
-import facDetail7 from '../assets/images/photo_journey_starts_1780719182143.png';
-import facDetail8 from '../assets/images/photo_fitness_game_1780719197997.png';
-import facDetail9 from '../assets/images/photo_building_bodies_1780719167008.png';
-import facDetail10 from '../assets/images/photo_body_transform_1780719098318.png';
-import facDetail11 from '../assets/images/photo_beyond_limits_1780719153347.png';
-import facDetail12 from '../assets/images/photo_stronger_daily_1780719216567.png';
+import facDetail1 from '../assets/images/regenerated_image_1780848023734.jpg';
+import facDetail2 from '../assets/images/regenerated_image_1780848186546.jpg';
+import facDetail3 from '../assets/images/regenerated_image_1780848337390.jpg';
+import facDetail4 from '../assets/images/regenerated_image_1780848469311.jpg';
+import facDetail5 from '../assets/images/regenerated_image_1780848568701.jpg';
+import facDetail6 from '../assets/images/regenerated_image_1780848658639.jpg';
+import facDetail7 from '../assets/images/regenerated_image_1780851963287.jpg';
+import facDetail8 from '../assets/images/regenerated_image_1780852061363.jpg';
+import facDetail9 from '../assets/images/regenerated_image_1780852207530.jpg';
+import facDetail10 from '../assets/images/regenerated_image_1780852321113.jpg';
+import facDetail11 from '../assets/images/regenerated_image_1780852921841.jpg';
+import facDetail12 from '../assets/images/regenerated_image_1780853798516.jpg';
 
 export const GYM_LOCATION = {
   address: "Building no 106 ,New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
