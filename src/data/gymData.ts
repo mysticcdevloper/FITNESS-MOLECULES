@@ -17,18 +17,18 @@ import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg'
 import cprCertImage from '../assets/images/cpr_aed_cert_ayush_pal_1780829099054.png';
 
 // Facility Photo Imports (Verified & Optimized for Vercel Builds)
-import facDetail1 from '../assets/images/regenerated_image_1780833876143.jpg';
-import facDetail2 from '../assets/images/regenerated_image_1780833878476.jpg';
-import facDetail3 from '../assets/images/regenerated_image_1780833881223.jpg';
-import facDetail4 from '../assets/images/regenerated_image_1780833884237.jpg';
-import facDetail5 from '../assets/images/regenerated_image_1780833886601.jpg';
-import facDetail6 from '../assets/images/regenerated_image_1780833890593.jpg';
-import facDetail7 from '../assets/images/regenerated_image_1780833893878.jpg';
-import facDetail8 from '../assets/images/regenerated_image_1780833896362.jpg';
-import facDetail9 from '../assets/images/regenerated_image_1780833899428.jpg';
-import facDetail10 from '../assets/images/regenerated_image_1780833902050.jpg';
-import facDetail11 from '../assets/images/regenerated_image_1780833904737.jpg';
-import facDetail12 from '../assets/images/regenerated_image_1780833907819.jpg';
+import facDetail1 from '../assets/images/facility_photo_1.jpg';
+import facDetail2 from '../assets/images/facility_photo_2.jpg';
+import facDetail3 from '../assets/images/facility_photo_3.jpg';
+import facDetail4 from '../assets/images/facility_photo_4.jpg';
+import facDetail5 from '../assets/images/facility_photo_5.jpg';
+import facDetail6 from '../assets/images/facility_photo_6.jpg';
+import facDetail7 from '../assets/images/facility_photo_7.jpg';
+import facDetail8 from '../assets/images/facility_photo_8.jpg';
+import facDetail9 from '../assets/images/facility_photo_9.jpg';
+import facDetail10 from '../assets/images/facility_photo_10.jpg';
+import facDetail11 from '../assets/images/facility_photo_11.jpg';
+import facDetail12 from '../assets/images/facility_photo_12.jpg';
 
 export const GYM_LOCATION = {
   address: "Building no 106 ,New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
