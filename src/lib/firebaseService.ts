@@ -9,7 +9,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
-import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph } from "../types";
+import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph, Review } from "../types";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
 let fallbackMode = false;
@@ -779,6 +779,171 @@ export async function deletePhotograph(id: string): Promise<void> {
     await deleteDoc(doc(db, path, id));
   } catch (error) {
     console.warn("Firestore delete photograph failed, but local copy was cleared:", error);
+    triggerLocalFallback();
+  }
+}
+
+// --- REVIEW PERSISTENCE FUNCTIONS ---
+
+export async function getAllReviews(): Promise<Review[]> {
+  const defaultSeeds: Review[] = [
+    {
+      id: "rev_seed1",
+      name: "Rishi Chawla",
+      role: "Local Business Owner",
+      quote: "Hands down the most scientific gym in Ghaziabad. The equipment is premium, the trainers are highly trained doctors and certified athletes, and the hygiene is pristine.",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "15/05/2026"
+    },
+    {
+      id: "rev_seed2",
+      name: "Sneha Tyagi",
+      role: "Software Engineer",
+      quote: "I love the booking feature. It is super convenient to schedule class slots on their app interface! The trainers genuinely focus on form, and they don't force buy costly supplements.",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "22/05/2026"
+    },
+    {
+      id: "rev_seed3",
+      name: "Amir Khan",
+      role: "Competitive Runner",
+      quote: "The combination of personalized conditioning guidance and structured diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "01/06/2026"
+    },
+    {
+      id: "rev_seed4",
+      name: "Rupesh Kumar",
+      role: "Fitness Enthusiast",
+      quote: "Amazing gym with certified trainers. Ayush Pal provided me with custom diet plans that helped me gain strength and lean muscle within weeks. Best premium scientific layout!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "03/06/2026"
+    },
+    {
+      id: "rev_seed5",
+      name: "Varun Sharma",
+      role: "Athlete / Bodybuilder",
+      quote: "Perfect biomechanical machines. Clean space, highly professional team, and high density dumbbells with Watson premium gears. Highly recommended for serious athletes!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "05/06/2026"
+    }
+  ];
+
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
+  } catch {
+    // ignore
+  }
+
+  if (isFallbackActive()) {
+    const list = getLocal<Review>('molecule_reviews');
+    const userOnlyList = list.filter(r => !r.id.startsWith('rev_seed'));
+    const filteredList = userOnlyList.filter(r => !deletedIdsList.includes(r.id));
+    const combined = [...filteredList, ...defaultSeeds.filter(r => !deletedIdsList.includes(r.id))];
+    return combined;
+  }
+
+  const path = `reviews`;
+  try {
+    const qSnapshot = await getDocs(collection(db, path));
+    const list: Review[] = [];
+    qSnapshot.forEach((doc) => {
+      const data = doc.data();
+      list.push({
+        id: data.id || doc.id,
+        userId: data.userId || "",
+        name: data.name || "",
+        role: data.role || "",
+        quote: data.quote || "",
+        rating: Number(data.rating || 5),
+        avatar: data.avatar || "",
+        createdAt: data.createdAt || "",
+        isGoogle: data.isGoogle || false
+      } as Review);
+    });
+    const filteredList = list.filter(r => !deletedIdsList.includes(r.id));
+    const combined = [...filteredList, ...defaultSeeds.filter(r => !deletedIdsList.includes(r.id))];
+    return combined.filter((v, i, self) => self.findIndex(t => t.id === v.id) === i);
+  } catch (error) {
+    console.warn("Firestore query reviews failed, loading fallback configuration:", error);
+    triggerLocalFallback();
+    const list = getLocal<Review>('molecule_reviews');
+    const userOnlyList = list.filter(r => !r.id.startsWith('rev_seed'));
+    const filteredList = userOnlyList.filter(r => !deletedIdsList.includes(r.id));
+    const combined = [...filteredList, ...defaultSeeds.filter(r => !deletedIdsList.includes(r.id))];
+    return combined;
+  }
+}
+
+export async function saveReview(review: Omit<Review, 'id' | 'createdAt'>): Promise<Review> {
+  const id = "rev_" + Math.random().toString(36).substring(2, 11);
+  const createdAt = new Date().toLocaleDateString('en-IN');
+
+  const record: Review = {
+    ...review,
+    id,
+    createdAt
+  };
+
+  if (isFallbackActive()) {
+    const list = getLocal<Review>('molecule_reviews');
+    list.unshift(record);
+    saveLocal('molecule_reviews', list);
+    return record;
+  }
+
+  const path = `reviews`;
+  try {
+    await setDoc(doc(db, path, id), record);
+    return record;
+  } catch (error) {
+    console.warn("Firestore save review failed, routing to local sandbox storage:", error);
+    triggerLocalFallback();
+    const list = getLocal<Review>('molecule_reviews');
+    list.unshift(record);
+    saveLocal('molecule_reviews', list);
+    return record;
+  }
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  let deletedIdsList: string[] = [];
+  try {
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
+  } catch {
+    // Safe fallback
+  }
+  if (!deletedIdsList.includes(id)) {
+    deletedIdsList.push(id);
+    try {
+      localStorage.setItem('molecule_deleted_reviews', JSON.stringify(deletedIdsList));
+    } catch {
+      // Safe fallback
+    }
+  }
+
+  const list = getLocal<Review>('molecule_reviews');
+  saveLocal('molecule_reviews', list.filter(item => item.id !== id));
+
+  if (isFallbackActive()) {
+    return;
+  }
+  const path = `reviews`;
+  try {
+    await deleteDoc(doc(db, path, id));
+  } catch (error) {
+    console.warn("Firestore delete review failed, but local copy was cleared:", error);
     triggerLocalFallback();
   }
 }

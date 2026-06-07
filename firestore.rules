@@ -255,6 +255,23 @@ service cloud.firestore {
         && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
     }
 
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'name', 'quote', 'rating'])
+        && data.id is string
+        && data.id.size() <= 64
+        && data.name is string
+        && data.name.size() <= 200
+        && data.quote is string
+        && data.quote.size() <= 2000
+        && data.rating is int
+        && data.rating >= 1 && data.rating <= 5
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
+        && (!('role' in data) || (data.role is string && data.role.size() <= 250))
+        && (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 2000))
+        && (!('isGoogle' in data) || (data.isGoogle is bool))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 100));
+    }
+
     // --- RULES FOR SPECIFIC MATCH PATHS ---
 
     // 1. Users Profile Match
@@ -325,6 +342,15 @@ service cloud.firestore {
       allow list: if true;
       allow create: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming());
       allow update: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // 9. Gym Reviews (Google Maps & Web Dynamic Reviews)
+    match /reviews/{reviewId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidId(reviewId) && isValidReview(incoming());
+      allow update: if isSignedIn() && isValidId(reviewId) && (existing().userId == request.auth.uid || isAdmin()) && isValidReview(incoming());
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
   }

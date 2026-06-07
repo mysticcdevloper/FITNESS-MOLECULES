@@ -99,7 +99,7 @@ export default function ContactSection({ onEnquirySubmit }: ContactSectionProps)
                 <div className="flex items-start" id="contact-info-phone-container">
                   <Phone className="h-5.5 w-5.5 text-red-500 shrink-0 mt-0.5 mr-3.5" />
                   <div>
-                    <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-wider block">Hotline Hotline</span>
+                    <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-wider block">Phone Number</span>
                     <div className="text-zinc-300 text-sm mt-0.5 leading-relaxed font-sans flex flex-col space-y-1">
                       <a href={`tel:${GYM_LOCATION.phone}`} className="hover:text-red-500 transition-colors block" id="contact-phone-primary">
                         {GYM_LOCATION.phone}
@@ -139,15 +139,28 @@ export default function ContactSection({ onEnquirySubmit }: ContactSectionProps)
             </div>
 
             {/* Custom Google Maps Embedded IFrame / Indicator Block */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden p-2 h-64 sm:h-72">
-              <iframe
-                title="Fitness Molecule Gym Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3500.5905206306505!2d77.424!3d28.67!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjjCsDQwJzEyLjAiTiA3N8KwMjUnMjYuNCJF!5e0!3m2!1sen!2sin!4v1654000000000!5m2!1sen!2sin"
-                className="w-full h-full border-0 rounded-xl filter invert-90 grayscale contrast-110"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden p-2 flex flex-col justify-between h-80 sm:h-96">
+              <div className="relative flex-1 overflow-hidden rounded-xl">
+                <iframe
+                  title="Fitness Molecule Gym Location"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3500.2520320491764!2d77.42262837610058!3d28.676140482089204!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cf174bb3719af%3A0x6976ce4cfa4f5dac!2sFitness%20molecules!5e0!3m2!1sen!2sin!4v1717750000000!5m2!1sen!2sin"
+                  className="w-full h-full border-0 absolute inset-0 filter invert-90 grayscale contrast-110"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+              <div className="pt-2 px-1 flex justify-between items-center bg-zinc-900">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase">Interactive Navigation Terminal</span>
+                <a 
+                  href="https://www.google.com/maps/place/Fitness+molecules/@28.6762634,77.4293793,1455m/data=!3m1!1e3!4m10!1m2!2m1!1sfitness+molecules+gym+maps!3m6!1s0x390cf174bb3719af:0x6976ce4cfa4f5dac!8m2!3d28.6769479!4d77.4252033!15sChpmaXRuZXNzIG1vbGVjdWxlcyBneW0gbWFwc1oXIhVmaXRuZXNzIG1vbGVjdWxlcyBneW2SAQNneW2aASRDaGREU1VoTk1HOW5TMFZKUTBGblNVTktNbU5IY1d0UlJSQULgAQD6AQQIABBL!16s%2Fg%2F11v0vr__h2?entry=ttu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono font-bold text-red-500 hover:text-red-400 transition-colors uppercase flex items-center gap-1"
+                >
+                  Open in Google Maps &rarr;
+                </a>
+              </div>
             </div>
           </div>
 

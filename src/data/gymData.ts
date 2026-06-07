@@ -14,9 +14,24 @@ import photo8 from '../assets/images/regenerated_image_1780741081907.jpg';
 import photo9 from '../assets/images/regenerated_image_1780741083603.jpg';
 import photo11 from '../assets/images/regenerated_image_1780743704526.jpg';
 import ayushPalPhoto from '../assets/images/regenerated_image_1780740397494.jpg';
+import cprCertImage from '../assets/images/cpr_aed_cert_ayush_pal_1780829099054.png';
+
+// Facility Photo Imports
+import facDetail1 from '../assets/images/regenerated_image_1780833876143.jpg';
+import facDetail2 from '../assets/images/regenerated_image_1780833878476.jpg';
+import facDetail3 from '../assets/images/regenerated_image_1780833881223.jpg';
+import facDetail4 from '../assets/images/regenerated_image_1780833884237.jpg';
+import facDetail5 from '../assets/images/regenerated_image_1780833886601.jpg';
+import facDetail6 from '../assets/images/regenerated_image_1780833890593.jpg';
+import facDetail7 from '../assets/images/regenerated_image_1780833893878.jpg';
+import facDetail8 from '../assets/images/regenerated_image_1780833896362.jpg';
+import facDetail9 from '../assets/images/regenerated_image_1780833899428.jpg';
+import facDetail10 from '../assets/images/regenerated_image_1780833902050.jpg';
+import facDetail11 from '../assets/images/regenerated_image_1780833904737.jpg';
+import facDetail12 from '../assets/images/regenerated_image_1780833907819.jpg';
 
 export const GYM_LOCATION = {
-  address: "New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
+  address: "Building no 106 ,New Arya Nagar, Patel Nagar 3, Patel Nagar, Ghaziabad, Uttar Pradesh 201001",
   plusCode: "MCGG+Q3G",
   whatsappNumber: "919910812507", // Editable virtual number for click-to-chat
   phone: "+919910812507",
@@ -38,7 +53,10 @@ export const TRAINERS: Trainer[] = [
     rating: 5.0,
     specializations: ["GGI", "ACE", "Sports Nutrition", "Advanced Biology Experts", "CPR/AED", "Dietetics", "Clinical Nutrition"],
     biography: "Certified by multiple premier international academies, featuring credentials across GGI, ACE, Sports Nutrition, Advanced Biology Experts, and CPR/AED. As our resident elite Dietician and Nutritionist, Ayush specializes in combining advanced physiology benchmarks with science-backed cell hypertrophy load mapping.",
-    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "11:00 AM", "05:00 PM", "07:00 PM", "09:00 PM"]
+    schedule: ["05:00 AM", "07:00 AM", "09:00 AM", "11:00 AM", "05:00 PM", "07:00 PM", "09:00 PM"],
+    certificationImage: cprCertImage,
+    certificationBadge: "CPR • First Aid • AED Certified",
+    certificationTitle: "Certification"
   }
 ];
 
@@ -256,7 +274,20 @@ export const WORKOUT_PROGRAMS: WorkoutProgram[] = [
   }
 ];
 
-export const GALLERY_IMGS: { url: string; caption: string }[] = [];
+export const GALLERY_IMGS: { url: string; caption: string }[] = [
+  { url: facDetail1, caption: "Strength Training Area" },
+  { url: facDetail2, caption: "Strength & Power Section" },
+  { url: facDetail3, caption: "Free Weight Section" },
+  { url: facDetail4, caption: "Workout Environment" },
+  { url: facDetail5, caption: "Elite Training Zone" },
+  { url: facDetail6, caption: "Cardio Zone" },
+  { url: facDetail7, caption: "Functional Training Space" },
+  { url: facDetail8, caption: "Modern Fitness Floor" },
+  { url: facDetail9, caption: "Premium Workout Area" },
+  { url: facDetail10, caption: "Premium Equipment Area" },
+  { url: facDetail11, caption: "Advanced Equipment Area" },
+  { url: facDetail12, caption: "Luxury Modern Gym Interior" }
+];
 
 export const TRANSFORMATION_IMGS = [
   {

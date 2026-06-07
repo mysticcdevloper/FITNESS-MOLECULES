@@ -6,13 +6,15 @@
 import React from 'react';
 import { TRAINERS } from '../data/gymData';
 import { Trainer } from '../types';
-import { Star, Award, CircleDot, Mail, CalendarDays } from 'lucide-react';
+import { Star, Award, CircleDot, Mail, CalendarDays, Eye, X } from 'lucide-react';
 
 interface TrainersSectionProps {
   onBookTrainerClick: (trainer: Trainer) => void;
 }
 
 export default function TrainersSection({ onBookTrainerClick }: TrainersSectionProps) {
+  const [activeCertificate, setActiveCertificate] = React.useState<{ url: string; title: string; badge: string } | null>(null);
+
   return (
     <section className="py-20 bg-zinc-950 text-white" id="trainers-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,6 +110,46 @@ export default function TrainersSection({ onBookTrainerClick }: TrainersSectionP
                         ))}
                       </div>
                     </div>
+
+                    {/* Certification Section */}
+                    {trainer.certificationImage && (
+                      <div className="mt-6 mb-6 pt-5 border-t border-zinc-800/60 pb-1 animate-in fade-in duration-300">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block font-bold mb-3">
+                          {trainer.certificationTitle || "Certification"}
+                        </span>
+                        <div 
+                          onClick={() => setActiveCertificate({ 
+                            url: trainer.certificationImage!, 
+                            title: trainer.name, 
+                            badge: trainer.certificationBadge || "CPR • First Aid • AED Certified" 
+                          })}
+                          className="group/cert relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-850 p-3.5 flex items-center gap-4 hover:border-red-500/50 transition-all duration-300 hover:bg-zinc-950/80 hover:shadow-lg hover:shadow-red-950/5"
+                        >
+                          {/* Image Thumbnail with zoom effect */}
+                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-zinc-900 border border-zinc-800">
+                            <img 
+                              src={trainer.certificationImage} 
+                              alt="Certification Thumbnail" 
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover/cert:scale-105"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cert:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                              <Eye className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+
+                          {/* Badge & Text */}
+                          <div className="flex-1 min-w-0">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-mono tracking-wider font-bold text-red-500 bg-red-500/10 border border-red-500/20 uppercase mb-1">
+                              {trainer.certificationBadge || "CPR • First Aid • AED Certified"}
+                            </span>
+                            <span className="block text-xs text-zinc-400 font-sans group-hover/cert:text-zinc-200 transition-colors truncate">
+                              Click to view verification certificate
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Booking Call-to-Action */}
@@ -129,6 +171,52 @@ export default function TrainersSection({ onBookTrainerClick }: TrainersSectionP
         </div>
 
       </div>
+
+      {/* Certificate Modal Lightbox */}
+      {activeCertificate && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 sm:p-6 backdrop-blur-md animate-in fade-in duration-300 animate-out fade-out duration-250"
+          onClick={() => setActiveCertificate(null)}
+        >
+          {/* Close button */}
+          <button 
+            onClick={() => setActiveCertificate(null)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-zinc-900 border border-zinc-800 text-white p-3 rounded-full hover:bg-red-500 hover:border-red-500 cursor-pointer hover:scale-105 transition-all duration-200 shadow-2xl z-50"
+            aria-label="Close certificate viewer"
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {/* Modal Container */}
+          <div 
+            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* The Image */}
+            <div className="relative bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden p-2 sm:p-3 shadow-2xl flex items-center justify-center max-h-[75vh] w-auto">
+              <img 
+                src={activeCertificate.url} 
+                alt={`${activeCertificate.title} Certificate`}
+                className="max-w-full max-h-[70vh] object-contain rounded-2xl"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            {/* Bottom details bar */}
+            <div className="text-center mt-5 max-w-xl px-4 animate-in slide-in-from-bottom-4 duration-300">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-mono tracking-widest font-bold text-red-500 bg-red-500/10 border border-red-500/20 uppercase mb-2">
+                {activeCertificate.badge}
+              </span>
+              <h4 className="text-white font-display font-medium text-lg sm:text-xl uppercase tracking-wide">
+                {activeCertificate.title}
+              </h4>
+              <p className="text-zinc-400 text-xs mt-1.5 font-sans">
+                Official Certification of Physical Conditioning & Medical First-Response
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

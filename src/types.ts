@@ -13,6 +13,9 @@ export interface Trainer {
   specializations: string[];
   biography: string;
   schedule: string[]; // e.g., ["08:00 AM", "11:00 AM", "04:00 PM", "06:00 PM"]
+  certificationImage?: string;
+  certificationBadge?: string;
+  certificationTitle?: string;
 }
 
 export interface GymClass {
@@ -58,6 +61,18 @@ export interface Testimonial {
   quote: string;
   rating: number;
   avatar: string;
+}
+
+export interface Review {
+  id: string;
+  userId?: string;
+  name: string;
+  role?: string;
+  quote: string;
+  rating: number;
+  avatar?: string;
+  createdAt?: string;
+  isGoogle?: boolean;
 }
 
 export interface WorkoutProgram {

@@ -271,7 +271,7 @@ export default function UserDashboard({
               </div>
               <button 
                 onClick={() => {
-                  const url = `https://www.google.com/maps/search/?api=1&query=MCGG%2BQ3G+Patel+Nagar+Ghaziabad+Uttar+Pradesh`;
+                  const url = `https://www.google.com/maps/place/Fitness+molecules/@28.6762634,77.4293793,1455m/data=!3m1!1e3!4m10!1m2!2m1!1sfitness+molecules+gym+maps!3m6!1s0x390cf174bb3719af:0x6976ce4cfa4f5dac!8m2!3d28.6769479!4d77.4252033!15sChpmaXRuZXNzIG1vbGVjdWxlcyBneW0gbWFwc1oXIhVmaXRuZXNzIG1vbGVjdWxlcyBneW2SAQNneW2aASRDaGREU1VoTk1HOW5TMFZKUTBGblNVTktNbU5IY1d0UlJSQULgAQD6AQQIABBL!16s%2Fg%2F11v0vr__h2?entry=ttu`;
                   window.open(url, '_blank');
                 }}
                 className="bg-red-500 hover:bg-red-400 text-white font-bold py-2.5 px-5 rounded-xl text-xs sm:text-sm self-start sm:self-center transition-colors shadow-lg shrink-0 cursor-pointer text-center"

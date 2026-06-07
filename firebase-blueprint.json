@@ -115,6 +115,23 @@
         "createdAt": { "type": "string" }
       },
       "required": ["id", "caption", "url"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "User submitted reviews and Google reviews.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "quote": { "type": "string" },
+        "rating": { "type": "integer" },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "isGoogle": { "type": "boolean" }
+      },
+      "required": ["id", "name", "quote", "rating"]
     }
   },
   "firestore": {
@@ -145,6 +162,10 @@
     "photographs/{photographId}": {
       "schema": "Photograph",
       "description": "Gym gallery photographs metadata mapped to database."
+    },
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Reviews of the gym, including Google Maps reviews and reviews added via website."
     }
   }
 }

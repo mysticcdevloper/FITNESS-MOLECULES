@@ -23,6 +23,7 @@ import UserDashboard from './components/UserDashboard';
 import WhatsAppWidget from './components/WhatsAppWidget';
 import AuthModal from './components/AuthModal';
 import AdminPortal from './components/AdminPortal';
+import ReviewsDashboard from './components/ReviewsDashboard';
 
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
@@ -41,7 +42,10 @@ import {
   deleteUserEnquiry,
   isFallbackActive,
   triggerLocalFallback,
-  disableLocalFallback
+  disableLocalFallback,
+  getAllReviews,
+  saveReview,
+  deleteReview
 } from './lib/firebaseService';
 
 export interface AppUser {
@@ -53,7 +57,7 @@ export interface AppUser {
 }
 
 import { GYM_LOCATION, WORKOUT_PROGRAMS, TESTIMONIALS } from './data/gymData';
-import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, isAdminEmail } from './types';
+import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, isAdminEmail, Review } from './types';
 import { Dumbbell, Trophy, ArrowRight, Shield, Heart, Zap, Sparkles, MessageSquare, Star, LayoutDashboard, Plus, Facebook, Instagram, Youtube } from 'lucide-react';
 
 const HERO_BACKGROUNDS = [
@@ -81,6 +85,26 @@ export default function App() {
   const [trainerBookings, setTrainerBookings] = useState<PersonalTrainerBooking[]>([]);
   const [classBookings, setClassBookings] = useState<ClassBooking[]>([]);
   const [enquiries, setEnquiries] = useState<EnquirySubmission[]>([]);
+
+  // Dynamic reviews state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState<boolean>(true);
+
+  const fetchReviews = async () => {
+    setLoadingReviews(true);
+    try {
+      const list = await getAllReviews();
+      setReviews(list);
+    } catch (err) {
+      console.error("Failed to load reviews:", err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
 
   const [user, setUser] = useState<AppUser | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -537,53 +561,7 @@ export default function App() {
           <TransformationStories />
 
           {/* TESTIMONIALS */}
-          <section className="py-20 bg-zinc-950 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center max-w-2xl mx-auto mb-16">
-                <span className="text-xs font-mono tracking-widest text-red-500 bg-red-500/10 px-3.5 py-1.5 rounded-full uppercase">
-                  Google Maps & Local Reviews
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-display font-medium text-white mt-4">
-                  CLIENTS <span className="text-red-500">TESTIMONIALS</span>
-                </h2>
-                <p className="text-zinc-400 mt-4 text-xs sm:text-sm">
-                  Prisinte results verified by software architects, medical students, and Ghaziabad local business owners.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-8">
-                {TESTIMONIALS.map((test) => (
-                  <div key={test.id} className="bg-zinc-900 border border-zinc-900 p-6 rounded-3xl flex flex-col justify-between hover:border-zinc-850 duration-200">
-                    <div>
-                      {/* Starts count */}
-                      <div className="flex space-x-1 mb-4 text-red-500">
-                        {[...Array(test.rating)].map((_, i) => (
-                          <Star key={i} className="h-4.5 w-4.5 fill-red-500 text-red-500" />
-                        ))}
-                      </div>
-
-                      <p className="text-zinc-300 text-xs sm:text-sm italic leading-relaxed font-sans">
-                        "{test.quote}"
-                      </p>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-zinc-950 flex items-center space-x-3.5">
-                      <img 
-                        src={test.avatar} 
-                        alt={test.name} 
-                        className="w-10 h-10 rounded-full object-cover border border-zinc-800"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div>
-                        <h4 className="text-white font-medium text-sm leading-none">{test.name}</h4>
-                        <span className="text-[11px] font-mono text-zinc-500 block mt-1">{test.role}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          <ReviewsDashboard user={user} onLoginRequired={() => setIsAuthOpen(true)} />
 
           {/* DYNAMIC HUB BANNER CTA */}
           <section className="py-16 bg-gradient-to-r from-zinc-900 to-zinc-950 border-t border-zinc-900 mt-10">

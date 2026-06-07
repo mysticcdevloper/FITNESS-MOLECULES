@@ -293,7 +293,8 @@ export default function GallerySection() {
     setLoadingPhotos(true);
     try {
       const list = await getAllPhotographs();
-      setCustomPhotos(list);
+      const filtered = list.filter(p => p.id !== 'photo_wpwchyl7o');
+      setCustomPhotos(filtered);
     } catch (err) {
       console.error("Failed to load photographs:", err);
     } finally {
@@ -303,7 +304,18 @@ export default function GallerySection() {
 
   useEffect(() => {
     fetchVideos();
-    fetchPhotos();
+    
+    const loadAndCleanup = async () => {
+      await fetchPhotos();
+      try {
+        await deletePhotograph('photo_wpwchyl7o');
+        await fetchPhotos();
+      } catch (err) {
+        console.error("Auto-purge photo_wpwchyl7o error:", err);
+      }
+    };
+    
+    loadAndCleanup();
   }, []);
 
   const openLightbox = (url: string, caption: string) => {
