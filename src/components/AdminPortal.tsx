@@ -21,7 +21,8 @@ import {
   disableLocalFallback,
   saveAttendance,
   getAllAttendance,
-  deleteAttendance
+  deleteAttendance,
+  seedLiveFirestoreData
 } from '../lib/firebaseService';
 import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord } from '../types';
 import { 
@@ -139,6 +140,33 @@ export default function AdminPortal() {
       setCSessionTime(selectedC.scheduleTimes[0]);
     }
   }, [cClassId]);
+
+  // Seeding/Sync states
+  const [seedingStatus, setSeedingStatus] = useState<'idle' | 'seeding' | 'success' | 'error'>('idle');
+  const [seededCounts, setSeededCounts] = useState<Record<string, number> | null>(null);
+  const [seedingError, setSeedingError] = useState<string | null>(null);
+
+  const handleSeedLiveFirestore = async () => {
+    setSeedingStatus('seeding');
+    setSeedingError(null);
+    try {
+      const result = await seedLiveFirestoreData();
+      if (result.success) {
+        setSeededCounts(result.seededCounts);
+        setSeedingStatus('success');
+        // Once successfully seeded, turn off local fallback so they view live database data!
+        disableLocalFallback();
+        // Refetch the data to show the live populated items on the Admin dashboard
+        await fetchData();
+      } else {
+        throw new Error("Seeding returned unsuccessful status.");
+      }
+    } catch (err: any) {
+      console.error("Error seeding live Firestore:", err);
+      setSeedingError(err?.message || String(err));
+      setSeedingStatus('error');
+    }
+  };
 
   // Submission handles
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -376,6 +404,66 @@ export default function AdminPortal() {
             >
               <Plus className="h-4.5 w-4.5 stroke-[2.5]" />
               <span>Create New Booking</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Cloud Firestore Seeding & Sync Notification Box */}
+        <div className="bg-gradient-to-r from-red-500/10 to-zinc-900 border border-zinc-850/60 p-6 rounded-3xl mb-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 animate-in fade-in duration-500">
+          <div className="space-y-2.5 max-w-3xl">
+            <div className="flex items-center gap-2 text-red-500">
+              <Sparkles className="h-4 w-4 text-red-500 animate-pulse" />
+              <span className="text-xs font-mono font-bold tracking-wider uppercase">Cloud Firestore Optimization Hub</span>
+            </div>
+            <h3 className="text-lg font-bold text-white font-display uppercase tracking-tight">Is your Firebase Firestore Database empty?</h3>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              By default, your live Google Cloud Firestore console displays <code className="text-red-400 bg-red-500/5 px-1.5 py-0.5 rounded font-mono">0 collections</code> because reviews, walkthrough walkthrough videos, and booking records are read from local fallback configurations to guarantee an instantaneous, zero-latency preview experience. Click the seed button to instantly populate your live cloud database with realistic athlete logs, verified reviews, and check-in schedules.
+            </p>
+            
+            {seedingStatus === 'success' && seededCounts && (
+              <div className="mt-3.5 bg-green-500/10 border border-green-500/20 p-4 rounded-xl flex flex-col sm:flex-row gap-x-5 gap-y-2 text-xs font-mono text-green-400 animate-in slide-in-from-top-2 duration-300">
+                <span className="font-bold uppercase text-white flex items-center gap-1.5 shrink-0">
+                  <Check className="h-4 w-4 bg-green-500 text-black rounded-full p-0.5" />
+                  Live Firestore Populated Successfully!
+                </span>
+                <div className="flex flex-wrap gap-2 text-[11px] text-zinc-300">
+                  <span>• Reviews: {seededCounts.reviews}</span>
+                  <span>• Videos: {seededCounts.videos}</span>
+                  <span>• Attendance: {seededCounts.attendance}</span>
+                  <span>• Memberships: {seededCounts.registrations}</span>
+                  <span>• Trainers: {seededCounts.trainerBookings}</span>
+                  <span>• Enquiries: {seededCounts.enquiries}</span>
+                </div>
+              </div>
+            )}
+
+            {seedingStatus === 'error' && seedingError && (
+              <div className="mt-3.5 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-xs font-mono text-red-400">
+                <span className="font-bold uppercase text-white">X Seeding Failed:</span> {seedingError}
+              </div>
+            )}
+          </div>
+
+          <div className="shrink-0 w-full lg:w-auto">
+            <button
+              disabled={seedingStatus === 'seeding'}
+              onClick={handleSeedLiveFirestore}
+              className={`w-full lg:w-auto px-6 py-3.5 rounded-2xl font-bold font-display text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
+                seedingStatus === 'seeding'
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'
+                  : seedingStatus === 'success'
+                  ? 'bg-green-500 hover:bg-green-400 text-black shadow-green-500/10 font-bold'
+                  : 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/15 animate-pulse'
+              }`}
+            >
+              <RefreshCw className={`h-4.5 w-4.5 ${seedingStatus === 'seeding' ? 'animate-spin' : ''}`} />
+              <span>
+                {seedingStatus === 'seeding' 
+                  ? 'Writing Live Records...' 
+                  : seedingStatus === 'success' 
+                  ? 'Cloud Synced ✔' 
+                  : '⚡ Seed Live Firestore Database'}
+              </span>
             </button>
           </div>
         </div>

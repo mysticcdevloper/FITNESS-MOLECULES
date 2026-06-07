@@ -45,7 +45,8 @@ import {
   disableLocalFallback,
   getAllReviews,
   saveReview,
-  deleteReview
+  deleteReview,
+  seedLiveFirestoreData
 } from './lib/firebaseService';
 
 export interface AppUser {
@@ -58,7 +59,7 @@ export interface AppUser {
 
 import { GYM_LOCATION, WORKOUT_PROGRAMS, TESTIMONIALS } from './data/gymData';
 import { MembershipPlan, GymClass, Trainer, MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, isAdminEmail, Review } from './types';
-import { Dumbbell, Trophy, ArrowRight, Shield, Heart, Zap, Sparkles, MessageSquare, Star, LayoutDashboard, Plus, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Dumbbell, Trophy, ArrowRight, Shield, Heart, Zap, Sparkles, MessageSquare, Star, LayoutDashboard, Plus, Facebook, Instagram, Youtube, Check, RefreshCw } from 'lucide-react';
 
 const HERO_BACKGROUNDS = [
   "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1920&q=80", // plates & heavy lifting barbell
@@ -112,6 +113,31 @@ export default function App() {
     type: 'register' | 'register_blank' | 'book_trainer' | 'book_class' | 'book_blank' | 'enquiry';
     data?: any;
   } | null>(null);
+
+  // Seeding states for Admin Floating Utility
+  const [isAppSeeding, setIsAppSeeding] = useState(false);
+  const [appSeedDone, setAppSeedDone] = useState(false);
+  const [appSeedCount, setAppSeedCount] = useState<any>(null);
+
+  const triggerDirectAppSeeding = async () => {
+    setIsAppSeeding(true);
+    try {
+      const result = await seedLiveFirestoreData();
+      if (result.success) {
+        setAppSeedCount(result.seededCounts);
+        setAppSeedDone(true);
+        disableLocalFallback();
+        fetchReviews();
+        if (user) {
+          syncUserData(user);
+        }
+      }
+    } catch (err) {
+      console.error("Auto seeding failed:", err);
+    } finally {
+      setIsAppSeeding(false);
+    }
+  };
 
   // Core data synchronization helper
   const syncUserData = async (u: AppUser) => {
@@ -772,6 +798,46 @@ export default function App() {
           if (user) syncUserData(user);
         }}
       />
+
+      {/* FLOATING ADMIN DATABASE SYNC WIDGET */}
+      {user && isAdminEmail(user.email) && (
+        <div id="admin-floating-sync" className="fixed bottom-24 left-6 z-50 max-w-sm sm:max-w-md bg-zinc-950/95 border border-amber-500/30 p-4.5 rounded-2xl shadow-xl shadow-black/80 backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-1.5 text-amber-400 font-mono text-[10px] font-bold tracking-wider uppercase">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+              <span>Admin Hot-Sync Monitor</span>
+            </div>
+            
+            <p className="text-zinc-300 font-sans text-xs leading-normal">
+              Seeding tool detected. Run sync to populate your live Google Cloud Firestore (collections and documents) instantly!
+            </p>
+
+            {appSeedDone && appSeedCount ? (
+              <div className="mt-1 bg-green-500/10 border border-green-500/20 p-2.5 rounded-xl text-[11px] font-mono text-green-400">
+                <div className="font-bold uppercase text-white flex items-center gap-1 mb-1">
+                  <Check className="h-3.5 w-3.5 bg-green-500 text-black rounded-full p-0.5" />
+                  Synced with Firestore!
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-zinc-400">
+                  <span>• Reviews: {appSeedCount.reviews}</span>
+                  <span>• Videos: {appSeedCount.videos}</span>
+                  <span>• Attendance: {appSeedCount.attendance}</span>
+                  <span>• Bookings: {appSeedCount.trainerBookings}</span>
+                </div>
+              </div>
+            ) : (
+              <button
+                disabled={isAppSeeding}
+                onClick={triggerDirectAppSeeding}
+                className="mt-1 w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 text-black font-semibold font-display text-xs uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/10"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isAppSeeding ? 'animate-spin' : ''}`} />
+                <span>{isAppSeeding ? 'Writing Live Firestore Collections...' : '⚡ Sync google console database'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* WHATSAPP WIDGET FLOATER PIECE */}
       <WhatsAppWidget />

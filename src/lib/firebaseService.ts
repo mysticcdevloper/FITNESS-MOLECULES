@@ -948,3 +948,219 @@ export async function deleteReview(id: string): Promise<void> {
   }
 }
 
+// --- CLOUD FIRESTORE MASTER SEEDING FUNCTION ---
+export async function seedLiveFirestoreData(): Promise<{ success: boolean; seededCounts: Record<string, number> }> {
+  const seededCounts: Record<string, number> = {
+    reviews: 0,
+    videos: 0,
+    attendance: 0,
+    registrations: 0,
+    trainerBookings: 0,
+    enquiries: 0
+  };
+
+  // Seed Reviews
+  const reviewsToSeed = [
+    {
+      id: "rev_seed1",
+      userId: "system_seed",
+      name: "Rishi Chawla",
+      role: "Local Business Owner",
+      quote: "Hands down the most scientific gym in Ghaziabad. The equipment is premium, the trainers are highly trained doctors and certified athletes, and the hygiene is pristine.",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "15/05/2026"
+    },
+    {
+      id: "rev_seed2",
+      userId: "system_seed",
+      name: "Sneha Tyagi",
+      role: "Software Engineer",
+      quote: "I love the booking feature. It is super convenient to schedule class slots on their app interface! The trainers genuinely focus on form, and they don't force buy costly supplements.",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "22/05/2026"
+    },
+    {
+      id: "rev_seed3",
+      userId: "system_seed",
+      name: "Amir Khan",
+      role: "Competitive Runner",
+      quote: "The combination of personalized conditioning guidance and structured diets boosted my running speed. The facility is well-ventilated and positive. Truly unmatched energy!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "01/06/2026"
+    },
+    {
+      id: "rev_seed4",
+      userId: "system_seed",
+      name: "Rupesh Kumar",
+      role: "Fitness Enthusiast",
+      quote: "Amazing gym with certified trainers. Ayush Pal provided me with custom diet plans that helped me gain strength and lean muscle within weeks. Best premium scientific layout!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "03/06/2026"
+    },
+    {
+      id: "rev_seed5",
+      userId: "system_seed",
+      name: "Varun Sharma",
+      role: "Athlete / Bodybuilder",
+      quote: "Perfect biomechanical machines. Clean space, highly professional team, and high density dumbbells with Watson premium gears. Highly recommended for serious athletes!",
+      rating: 5,
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+      isGoogle: true,
+      createdAt: "05/06/2026"
+    }
+  ];
+
+  for (const r of reviewsToSeed) {
+    await setDoc(doc(db, "reviews", r.id), r);
+    seededCounts.reviews++;
+  }
+
+  // Seed Videos
+  const videosToSeed = [
+    {
+      id: "vid_3",
+      userId: "system_seed",
+      uploaderName: "Co-Founders",
+      title: "FITNESS MOLECULES GYM OVERVIEW",
+      description: "A comprehensive physical walkthrough demonstrating our state-of-the-art training zones, premium high-load machines, and vibrant athlete workout energy.",
+      url: "https://www.youtube.com/embed/LK97h_8ILP8",
+      createdAt: "04/06/2026"
+    },
+    {
+      id: "vid_4",
+      userId: "system_seed",
+      uploaderName: "Aaru",
+      title: "Gym Floor Core Exercises",
+      description: "A selection of highly effective core training stability and strength movements demonstrated right on our gym training floor.",
+      url: "https://www.youtube.com/embed/HTyZODkhdAM",
+      createdAt: "04/06/2026"
+    },
+    {
+      id: "vid_5",
+      userId: "system_seed",
+      uploaderName: "Aaru",
+      title: "EXERCISE OVERVIEW BY AARU",
+      description: "Step-by-step guidance on execution, standard posture adjustment, and peak contraction mechanics for superior strength results.",
+      url: "https://www.youtube.com/embed/IqFnJSPX5Dc",
+      createdAt: "04/06/2026"
+    }
+  ];
+
+  for (const v of videosToSeed) {
+    await setDoc(doc(db, "videos", v.id), v);
+    seededCounts.videos++;
+  }
+
+  // Seed Attendance
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const attendanceToSeed = [
+    {
+      id: "att_1",
+      clientName: "Ramesh Chandra",
+      clientEmail: "ramesh@molecule.fit",
+      clientPhone: "9876543210",
+      date: today,
+      status: "Present",
+      checkInTime: "06:15 AM",
+      notes: "Regular morning strength routine",
+      createdAt: new Date().toLocaleDateString("en-IN")
+    },
+    {
+      id: "att_2",
+      clientName: "Vijay Kumar",
+      clientEmail: "vijay@molecule.fit",
+      clientPhone: "9988776655",
+      date: today,
+      status: "Late",
+      checkInTime: "07:35 AM",
+      notes: "Stuck in traffic, did high intensity cardio",
+      createdAt: new Date().toLocaleDateString("en-IN")
+    },
+    {
+      id: "att_3",
+      clientName: "Neha Sharma",
+      clientEmail: "neha.sharma@molecule.fit",
+      clientPhone: "9123456789",
+      date: yesterday,
+      status: "Absent",
+      notes: "Informed: family emergency",
+      createdAt: new Date().toLocaleDateString("en-IN")
+    }
+  ];
+
+  for (const a of attendanceToSeed) {
+    await setDoc(doc(db, "attendance", a.id), a);
+    seededCounts.attendance++;
+  }
+
+  // Seed a sample Registration
+  const sampleReg = {
+    id: "reg_default_demo_1",
+    userId: "admin_seed",
+    planId: "p2",
+    planName: "Platinum Club Elite Membership",
+    planDuration: "12 Months",
+    planPrice: "₹18,000",
+    fullName: "Rupesh Kumar",
+    email: "itsofficialrupeshcsa@gmail.com",
+    phone: "9876543210",
+    startDate: today,
+    paymentMethod: "gpay",
+    createdAt: new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    })
+  };
+  await setDoc(doc(db, "registrations", sampleReg.id), sampleReg);
+  seededCounts.registrations++;
+
+  // Seed sample Trainer Booking
+  const sampleTrainer = {
+    id: "tb_default_demo_1",
+    userId: "admin_seed",
+    trainerId: "t1",
+    trainerName: "Dr. Ayush Pal",
+    clientName: "Varun Sharma",
+    clientEmail: "varun@athlete.fit",
+    clientPhone: "9112233445",
+    bookingDate: today,
+    bookingTime: "08:00 AM",
+    notes: "Postural assessment and biomechanics alignment orientation",
+    createdAt: new Date().toLocaleDateString("en-IN")
+  };
+  await setDoc(doc(db, "trainerBookings", sampleTrainer.id), sampleTrainer);
+  seededCounts.trainerBookings++;
+
+  // Seed sample Enquiry
+  const sampleEnquiry = {
+    id: "enq_default_demo_1",
+    userId: "admin_seed",
+    clientName: "Amit Ghaziabad",
+    clientPhone: "9000011111",
+    clientEmail: "amit@gmail.com",
+    age: 29,
+    fitnessGoal: "Muscle Gain",
+    message: "Hi, I am looking to join the elite Watson dumbbells training zone. What are the timings?",
+    createdAt: new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit"
+    })
+  };
+  await setDoc(doc(db, "enquiries", sampleEnquiry.id), sampleEnquiry);
+  seededCounts.enquiries++;
+
+  return { success: true, seededCounts };
+}
+
