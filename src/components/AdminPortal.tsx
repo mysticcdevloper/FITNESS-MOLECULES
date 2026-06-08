@@ -438,8 +438,40 @@ export default function AdminPortal() {
             )}
 
             {seedingStatus === 'error' && seedingError && (
-              <div className="mt-3.5 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-xs font-mono text-red-400">
-                <span className="font-bold uppercase text-white">X Seeding Failed:</span> {seedingError}
+              <div className="mt-4 bg-red-500/10 border border-red-500/20 p-5 rounded-2xl text-xs font-mono text-red-400 space-y-3 animate-in slide-in-from-top-3 duration-300">
+                <div className="font-bold uppercase text-white flex items-center gap-1.5 text-sm">
+                  <ShieldAlert className="h-4.5 w-4.5 text-red-500" />
+                  <span>Database Connection / Permission Alert</span>
+                </div>
+                
+                <p className="text-zinc-300 font-sans text-xs sm:text-[13px] leading-relaxed">
+                  Your live Google Cloud console is blocking this client from writing records. This is because your Firestore Security Rules on the Google portal are set to reject database writes (the default setup of <code className="text-red-400 font-mono bg-black/40 px-1 py-0.5 rounded">allow read, write: if false;</code>).
+                </p>
+
+                <div className="bg-black/30 p-3.5 rounded-xl border border-red-500/10 space-y-2 text-zinc-400 font-sans leading-relaxed text-[11px] sm:text-xs">
+                  <div className="font-semibold text-zinc-200">How to fix this in 1-Click:</div>
+                  <ol className="list-decimal list-inside space-y-1.5 leading-normal text-zinc-300">
+                    <li>
+                      Open your <a href="https://console.firebase.google.com/project/fitness-moleculess-b24c4/firestore/rules" target="_blank" rel="noopener noreferrer" className="text-red-400 underline hover:text-red-300 font-bold font-mono">Firebase Rules Editor ↗</a>
+                    </li>
+                    <li>
+                      Under the <span className="text-zinc-200">"Rules"</span> tab, temporarily change to:
+                      <div className="bg-black/50 p-2 rounded-lg text-amber-400 font-mono mt-1 font-bold text-[11px]">
+                        allow read, write: if true;
+                      </div>
+                    </li>
+                    <li>
+                      Click <span className="text-white bg-red-500/40 px-1.5 py-0.5 rounded font-mono font-bold">Publish</span>, wait 10 seconds, then click the Seed button again!
+                    </li>
+                    <li className="text-[10px] text-zinc-400 italic">
+                      (After seeding is successful, you can restore your secure rules to protect your production data).
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="text-[10px] text-zinc-500 leading-normal font-mono uppercase tracking-wide border-t border-zinc-850 pt-2 break-all">
+                  Diagnostic Error Log: {seedingError}
+                </div>
               </div>
             )}
           </div>
