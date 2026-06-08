@@ -410,7 +410,7 @@ export default function AdminPortal() {
 
         {/* Cloud Firestore Seeding & Sync Notification Box */}
         <div className="bg-gradient-to-r from-red-500/10 to-zinc-900 border border-zinc-850/60 p-6 rounded-3xl mb-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 animate-in fade-in duration-500">
-          <div className="space-y-2.5 max-w-3xl">
+          <div className="space-y-2.5 max-w-3xl hidden">
             <div className="flex items-center gap-2 text-red-500">
               <Sparkles className="h-4 w-4 text-red-500 animate-pulse" />
               <span className="text-xs font-mono font-bold tracking-wider uppercase">Cloud Firestore Optimization Hub</span>
