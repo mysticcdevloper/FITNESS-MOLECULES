@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Sparkles, ExternalLink, Check } from "lucide-react";
 import { triggerLocalFallback } from "../lib/firebaseService";
+import { safeStorage } from "../lib/safeStorage";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalP
       displayName: roleName,
       isSandbox: true
     };
-    localStorage.setItem('molecule_sandbox_user', JSON.stringify(sandboxUser));
+    safeStorage.setItem('molecule_sandbox_user', JSON.stringify(sandboxUser));
     triggerLocalFallback();
     onClose();
     window.location.reload();

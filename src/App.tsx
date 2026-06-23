@@ -47,6 +47,7 @@ import {
   saveReview,
   deleteReview
 } from './lib/firebaseService';
+import { safeStorage } from './lib/safeStorage';
 
 export interface AppUser {
   uid: string;
@@ -136,7 +137,7 @@ export default function App() {
   // Sync user state and data from Firestore or Local Storage Sandbox
   useEffect(() => {
     // Check if there is an active local sandbox user session
-    const savedSandbox = localStorage.getItem('molecule_sandbox_user');
+    const savedSandbox = safeStorage.getItem('molecule_sandbox_user');
     if (savedSandbox) {
       try {
         const parsed = JSON.parse(savedSandbox);
@@ -154,7 +155,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         // Only override if there is no active sandbox session
-        if (!localStorage.getItem('molecule_sandbox_user')) {
+        if (!safeStorage.getItem('molecule_sandbox_user')) {
           const u: AppUser = {
             uid: currentUser.uid,
             email: currentUser.email,
@@ -169,7 +170,7 @@ export default function App() {
         }
       } else {
         // Clear if not in sandbox mode
-        if (!localStorage.getItem('molecule_sandbox_user')) {
+        if (!safeStorage.getItem('molecule_sandbox_user')) {
           setUser(null);
           setRegistrations([]);
           setTrainerBookings([]);
@@ -398,9 +399,9 @@ export default function App() {
         user={user}
         onAuthClick={() => setIsAuthOpen(true)}
         onSignOut={async () => {
-          if (user?.isSandbox || localStorage.getItem('molecule_sandbox_user')) {
+          if (user?.isSandbox || safeStorage.getItem('molecule_sandbox_user')) {
             setUser(null);
-            localStorage.removeItem('molecule_sandbox_user');
+            safeStorage.removeItem('molecule_sandbox_user');
             setRegistrations([]);
             setTrainerBookings([]);
             setClassBookings([]);
@@ -413,7 +414,7 @@ export default function App() {
               console.error("Firebase signout error:", err);
             }
             setUser(null);
-            localStorage.removeItem('molecule_sandbox_user');
+            safeStorage.removeItem('molecule_sandbox_user');
             setRegistrations([]);
             setTrainerBookings([]);
             setClassBookings([]);
@@ -610,7 +611,7 @@ export default function App() {
       
       {activeTab === 'plans' && <MembershipPlans onJoinClick={triggerJoinPlan} />}
       
-      {activeTab === 'gallery' && <GallerySection />}
+      {activeTab === 'gallery' && <GallerySection user={user} />}
       
       {activeTab === 'contact' && <ContactSection onEnquirySubmit={handleEnquirySubmit} />}
       

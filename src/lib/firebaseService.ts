@@ -10,11 +10,12 @@ import {
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
 import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph, Review } from "../types";
+import { safeStorage } from "./safeStorage";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
 let fallbackMode = false;
 try {
-  fallbackMode = localStorage.getItem('molecule_use_fallback') === 'true';
+  fallbackMode = safeStorage.getItem('molecule_use_fallback') === 'true';
 } catch {
   // Safe default for sandboxed / private environments
 }
@@ -27,7 +28,7 @@ export function triggerLocalFallback() {
   if (!fallbackMode) {
     fallbackMode = true;
     try {
-      localStorage.setItem('molecule_use_fallback', 'true');
+      safeStorage.setItem('molecule_use_fallback', 'true');
     } catch {
       // ignore
     }
@@ -38,7 +39,7 @@ export function triggerLocalFallback() {
 export function disableLocalFallback() {
   fallbackMode = false;
   try {
-    localStorage.removeItem('molecule_use_fallback');
+    safeStorage.removeItem('molecule_use_fallback');
   } catch {
     // ignore
   }
@@ -47,7 +48,7 @@ export function disableLocalFallback() {
 
 function getLocal<T>(key: string): T[] {
   try {
-    const data = localStorage.getItem(key);
+    const data = safeStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   } catch {
     return [];
@@ -56,7 +57,7 @@ function getLocal<T>(key: string): T[] {
 
 function saveLocal<T>(key: string, items: T[]) {
   try {
-    localStorage.setItem(key, JSON.stringify(items));
+    safeStorage.setItem(key, JSON.stringify(items));
   } catch (err) {
     console.error("Local storage sync error:", err);
   }
@@ -598,7 +599,7 @@ export async function getAllVideos(): Promise<Video[]> {
 
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_vids') || '[]');
   } catch {
     // Safe fallback
   }
@@ -651,14 +652,14 @@ export async function getAllVideos(): Promise<Video[]> {
 export async function deleteVideo(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_vids') || '[]');
   } catch {
     // Safe handle
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      localStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
+      safeStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
     } catch {
       // Safe handle
     }
@@ -716,7 +717,7 @@ export async function savePhotograph(photo: Omit<Photograph, 'id' | 'createdAt'>
 export async function getAllPhotographs(): Promise<Photograph[]> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_photos') || '[]');
   } catch {
     // Safe fallback
   }
@@ -754,14 +755,14 @@ export async function getAllPhotographs(): Promise<Photograph[]> {
 export async function deletePhotograph(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_photos') || '[]');
   } catch {
     // Safe fallback
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      localStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
+      safeStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
     } catch {
       // Safe fallback
     }
@@ -841,7 +842,7 @@ export async function getAllReviews(): Promise<Review[]> {
 
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_reviews') || '[]');
   } catch {
     // ignore
   }
@@ -920,14 +921,14 @@ export async function saveReview(review: Omit<Review, 'id' | 'createdAt'>): Prom
 export async function deleteReview(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
+    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_reviews') || '[]');
   } catch {
     // Safe fallback
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      localStorage.setItem('molecule_deleted_reviews', JSON.stringify(deletedIdsList));
+      safeStorage.setItem('molecule_deleted_reviews', JSON.stringify(deletedIdsList));
     } catch {
       // Safe fallback
     }

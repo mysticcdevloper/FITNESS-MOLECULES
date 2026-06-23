@@ -14,7 +14,7 @@ interface NavbarProps {
   setActiveTab: (tab: string) => void;
   openJoinModal: (planId?: string) => void;
   hasDashboardData: boolean;
-  user: FirebaseUser | null;
+  user: any;
   onAuthClick: () => void;
   onSignOut: () => void;
 }

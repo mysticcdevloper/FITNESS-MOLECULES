@@ -35,6 +35,7 @@ import { storeLocalVideoBlob, deleteLocalVideoBlob, getLocalVideoBlob } from '..
 import { storeLocalImageBlob, deleteLocalImageBlob, getLocalImageBlob } from '../lib/imageStorage';
 import { Video, Photograph, isAdminEmail } from '../types';
 import { Camera, Image as ImageIcon } from 'lucide-react';
+import { safeStorage } from '../lib/safeStorage';
 
 interface DynamicVideoProps {
   url: string;
@@ -230,7 +231,11 @@ function DynamicImage({ url, alt, className, referrerPolicy }: DynamicImageProps
   );
 }
 
-export default function GallerySection() {
+interface GallerySectionProps {
+  user?: any;
+}
+
+export default function GallerySection({ user }: GallerySectionProps) {
   const [activeTab, setActiveTab] = useState<'photos' | 'transformations' | 'videos'>('transformations');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedCaption, setSelectedCaption] = useState<string>('');
@@ -422,24 +427,34 @@ export default function GallerySection() {
   };
 
   // User authentication context
-  const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
+  const [currentUser, setCurrentUser] = useState<any>(user || auth.currentUser);
   const [deletedStaticUrls, setDeletedStaticUrls] = useState<string[]>([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
       setCurrentUser(user);
+    } else {
+      setCurrentUser(auth.currentUser);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      if (!user) {
+        setCurrentUser(u);
+      }
     });
     
     // Load deleted static template photographs
     try {
-      const saved = JSON.parse(localStorage.getItem('molecule_deleted_static_photos') || '[]');
+      const saved = JSON.parse(safeStorage.getItem('molecule_deleted_static_photos') || '[]');
       setDeletedStaticUrls(saved);
     } catch (err) {
       console.error("Failed to load deleted static photos", err);
     }
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const currentEmail = currentUser?.email || '';
   const isAdmin = currentUser ? isAdminEmail(currentUser?.email) : false;
@@ -689,7 +704,7 @@ export default function GallerySection() {
                 <button
                   type="button"
                   onClick={() => {
-                    localStorage.removeItem('molecule_deleted_static_photos');
+                    safeStorage.removeItem('molecule_deleted_static_photos');
                     setDeletedStaticUrls([]);
                   }}
                   className="px-4 py-3 bg-zinc-950 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-xl text-xs font-mono font-bold border border-zinc-800 hover:border-zinc-700 cursor-pointer flex items-center space-x-1.5 transition-all shadow-md active:scale-98"
@@ -1054,7 +1069,7 @@ export default function GallerySection() {
                       if (p.id.startsWith('static_')) {
                         const updated = [...deletedStaticUrls, p.url];
                         setDeletedStaticUrls(updated);
-                        localStorage.setItem('molecule_deleted_static_photos', JSON.stringify(updated));
+                        safeStorage.setItem('molecule_deleted_static_photos', JSON.stringify(updated));
                       } else {
                         if (p.url && p.url.startsWith('indexeddb-img://')) {
                           const localId = p.url.replace('indexeddb-img://', '');
