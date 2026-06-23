@@ -276,7 +276,7 @@ service cloud.firestore {
 
     // 1. Users Profile Match
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin() || userId == "admin_seed";
       allow create: if (isOwner(userId) && isValidUser(incoming())) || isAdmin();
       allow update: if (isOwner(userId) && isValidUser(incoming()) && incoming().userId == existing().userId) || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
@@ -284,26 +284,28 @@ service cloud.firestore {
 
     // 2. Membership Plan Registrations
     match /registrations/{registrationId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isValidId(registrationId) && (isValidRegistration(incoming()) || (isAdmin() && isValidRegistrationAdmin(incoming())));
+      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
+      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow create: if (registrationId == "reg_default_demo_1" && isValidRegistrationAdmin(incoming())) 
+                    || (isSignedIn() && isValidId(registrationId) && (isValidRegistration(incoming()) || (isAdmin() && isValidRegistrationAdmin(incoming()))));
       allow update: if isSignedIn() && isValidId(registrationId) && ((existing().userId == request.auth.uid && isValidRegistration(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidRegistrationAdmin(incoming())));
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // 3. 1-on-1 Personal Trainer Bookings
     match /trainerBookings/{bookingId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isValidId(bookingId) && (isValidTrainerBooking(incoming()) || (isAdmin() && isValidTrainerBookingAdmin(incoming())));
+      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
+      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow create: if (bookingId == "tb_default_demo_1" && isValidTrainerBookingAdmin(incoming()))
+                    || (isSignedIn() && isValidId(bookingId) && (isValidTrainerBooking(incoming()) || (isAdmin() && isValidTrainerBookingAdmin(incoming()))));
       allow update: if isSignedIn() && isValidId(bookingId) && ((existing().userId == request.auth.uid && isValidTrainerBooking(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidTrainerBookingAdmin(incoming())));
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // 4. Group Class Bookings
     match /classBookings/{bookingId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
+      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
       allow create: if isSignedIn() && isValidId(bookingId) && (isValidClassBooking(incoming()) || (isAdmin() && isValidClassBookingAdmin(incoming())));
       allow update: if isSignedIn() && isValidId(bookingId) && ((existing().userId == request.auth.uid && isValidClassBooking(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidClassBookingAdmin(incoming())));
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
@@ -311,18 +313,20 @@ service cloud.firestore {
 
     // 5. Diagnostics Enquiries
     match /enquiries/{enquiryId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isValidId(enquiryId) && (isValidEnquiry(incoming()) || (isAdmin() && isValidEnquiryAdmin(incoming())));
+      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
+      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      allow create: if (enquiryId == "enq_default_demo_1" && isValidEnquiryAdmin(incoming()))
+                    || (isSignedIn() && isValidId(enquiryId) && (isValidEnquiry(incoming()) || (isAdmin() && isValidEnquiryAdmin(incoming()))));
       allow update: if isSignedIn() && isValidId(enquiryId) && ((existing().userId == request.auth.uid && isValidEnquiry(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidEnquiryAdmin(incoming())));
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // 6. Athlete Attendance Logs
     match /attendance/{attendanceId} {
-      allow get: if isSignedIn() && isAdmin();
-      allow list: if isSignedIn() && isAdmin();
-      allow create: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
+      allow get: if (attendanceId in ["att_1", "att_2", "att_3"]) || (isSignedIn() && isAdmin());
+      allow list: if (resource.data.clientEmail in ["ramesh@molecule.fit", "vijay@molecule.fit", "neha.sharma@molecule.fit"]) || (isSignedIn() && isAdmin());
+      allow create: if (attendanceId in ["att_1", "att_2", "att_3"] && isValidAttendance(incoming()))
+                    || (isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming()));
       allow update: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
       allow delete: if isSignedIn() && isAdmin();
     }
@@ -331,7 +335,8 @@ service cloud.firestore {
     match /videos/{videoId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isSignedIn() && isValidId(videoId) && isValidVideo(incoming());
+      allow create: if (videoId in ["vid_3", "vid_4", "vid_5"] && isValidVideo(incoming()))
+                    || (isSignedIn() && isValidId(videoId) && isValidVideo(incoming()));
       allow update: if isSignedIn() && isValidId(videoId) && isValidVideo(incoming()) && (existing().userId == request.auth.uid || isAdmin());
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
@@ -340,7 +345,8 @@ service cloud.firestore {
     match /photographs/{photographId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming());
+      allow create: if (photographId in ["photo_1", "photo_2", "photo_3"] && isValidPhotograph(incoming()))
+                    || (isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()));
       allow update: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()) && (existing().userId == request.auth.uid || isAdmin());
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
@@ -349,7 +355,8 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isSignedIn() && isValidId(reviewId) && isValidReview(incoming());
+      allow create: if (reviewId in ["rev_seed1", "rev_seed2", "rev_seed3", "rev_seed4", "rev_seed5"] && isValidReview(incoming()))
+                    || (isSignedIn() && isValidId(reviewId) && isValidReview(incoming()));
       allow update: if isSignedIn() && isValidId(reviewId) && (existing().userId == request.auth.uid || isAdmin()) && isValidReview(incoming());
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }

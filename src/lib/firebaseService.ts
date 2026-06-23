@@ -1145,9 +1145,9 @@ export async function seedLiveFirestoreData(): Promise<{ success: boolean; seede
   const sampleEnquiry = {
     id: "enq_default_demo_1",
     userId: "admin_seed",
-    clientName: "Amit Ghaziabad",
-    clientPhone: "9000011111",
-    clientEmail: "amit@gmail.com",
+    name: "Amit Ghaziabad",
+    phone: "9000011111",
+    email: "amit@gmail.com",
     age: 29,
     fitnessGoal: "Muscle Gain",
     message: "Hi, I am looking to join the elite Watson dumbbells training zone. What are the timings?",
