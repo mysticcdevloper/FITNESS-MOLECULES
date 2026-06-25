@@ -10,28 +10,35 @@ import {
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../firebase";
 import { MembershipRegistration, PersonalTrainerBooking, ClassBooking, EnquirySubmission, AttendanceRecord, Video, Photograph, Review } from "../types";
-import { safeStorage } from "./safeStorage";
 
 // --- SEAMLESS STATIC FALLBACK LAYER ---
 let fallbackMode = false;
 try {
-  fallbackMode = safeStorage.getItem('molecule_use_fallback') === 'true';
+  // Clear any stale sticky fallback traps to rescue users from local storage loop
+  localStorage.removeItem('molecule_use_fallback');
 } catch {
   // Safe default for sandboxed / private environments
 }
 
 export function isFallbackActive(): boolean {
+  try {
+    if (localStorage.getItem('molecule_sandbox_user') || sessionStorage.getItem('molecule_use_fallback') === 'true') {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
   return fallbackMode;
 }
 
 export function triggerLocalFallback() {
+  try {
+    sessionStorage.setItem('molecule_use_fallback', 'true');
+  } catch {
+    // ignore
+  }
   if (!fallbackMode) {
     fallbackMode = true;
-    try {
-      safeStorage.setItem('molecule_use_fallback', 'true');
-    } catch {
-      // ignore
-    }
     window.dispatchEvent(new Event('molecule_fallback_changed'));
   }
 }
@@ -39,16 +46,26 @@ export function triggerLocalFallback() {
 export function disableLocalFallback() {
   fallbackMode = false;
   try {
-    safeStorage.removeItem('molecule_use_fallback');
+    sessionStorage.removeItem('molecule_use_fallback');
+    localStorage.removeItem('molecule_use_fallback');
   } catch {
     // ignore
   }
   window.dispatchEvent(new Event('molecule_fallback_changed'));
 }
 
+async function writeWithTimeout<T>(promise: Promise<T>, timeoutMs: number = 4000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout: Firestore operation took too long (network is offline or database permissions blocked).")), timeoutMs)
+    )
+  ]);
+}
+
 function getLocal<T>(key: string): T[] {
   try {
-    const data = safeStorage.getItem(key);
+    const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   } catch {
     return [];
@@ -57,7 +74,7 @@ function getLocal<T>(key: string): T[] {
 
 function saveLocal<T>(key: string, items: T[]) {
   try {
-    safeStorage.setItem(key, JSON.stringify(items));
+    localStorage.setItem(key, JSON.stringify(items));
   } catch (err) {
     console.error("Local storage sync error:", err);
   }
@@ -89,7 +106,7 @@ export async function saveRegistration(userId: string, reg: Omit<MembershipRegis
 
   const path = `registrations`;
   try {
-    await setDoc(doc(db, path, id), record);
+    await writeWithTimeout(setDoc(doc(db, path, id), record), 4000);
     return record;
   } catch (error) {
     console.warn("Firestore save failed, routing to local sandbox storage:", error);
@@ -121,7 +138,7 @@ export async function saveTrainerBooking(userId: string, booking: Omit<PersonalT
 
   const path = `trainerBookings`;
   try {
-    await setDoc(doc(db, path, id), record);
+    await writeWithTimeout(setDoc(doc(db, path, id), record), 4000);
     return record;
   } catch (error) {
     console.warn("Firestore save failed, routing to local sandbox storage:", error);
@@ -153,7 +170,7 @@ export async function saveClassBooking(userId: string, booking: Omit<ClassBookin
 
   const path = `classBookings`;
   try {
-    await setDoc(doc(db, path, id), record);
+    await writeWithTimeout(setDoc(doc(db, path, id), record), 4000);
     return record;
   } catch (error) {
     console.warn("Firestore save failed, routing to local sandbox storage:", error);
@@ -190,7 +207,7 @@ export async function saveEnquiry(userId: string, enq: Omit<EnquirySubmission, '
 
   const path = `enquiries`;
   try {
-    await setDoc(doc(db, path, id), record);
+    await writeWithTimeout(setDoc(doc(db, path, id), record), 4000);
     return record;
   } catch (error) {
     console.warn("Firestore save failed, routing to local sandbox storage:", error);
@@ -217,7 +234,7 @@ export async function getUserRegistrations(userId: string): Promise<MembershipRe
     });
     return list;
   } catch (error) {
-    console.warn("Firestore query failed, loading local fallback records:", error);
+    console.info("Firestore query failed, loading local fallback records:", error);
     triggerLocalFallback();
     return getLocal<MembershipRegistration>('molecule_registrations').filter(r => r.userId === userId || r.email === userId);
   }
@@ -237,7 +254,7 @@ export async function getUserTrainerBookings(userId: string): Promise<PersonalTr
     });
     return list;
   } catch (error) {
-    console.warn("Firestore query failed, loading local fallback records:", error);
+    console.info("Firestore query failed, loading local fallback records:", error);
     triggerLocalFallback();
     return getLocal<PersonalTrainerBooking>('molecule_trainerBookings').filter(b => b.userId === userId || b.clientEmail === userId);
   }
@@ -257,7 +274,7 @@ export async function getUserClassBookings(userId: string): Promise<ClassBooking
     });
     return list;
   } catch (error) {
-    console.warn("Firestore query failed, loading local fallback records:", error);
+    console.info("Firestore query failed, loading local fallback records:", error);
     triggerLocalFallback();
     return getLocal<ClassBooking>('molecule_classBookings').filter(b => b.userId === userId || b.clientEmail === userId);
   }
@@ -277,7 +294,7 @@ export async function getUserEnquiries(userId: string): Promise<EnquirySubmissio
     });
     return list;
   } catch (error) {
-    console.warn("Firestore query failed, loading local fallback records:", error);
+    console.info("Firestore query failed, loading local fallback records:", error);
     triggerLocalFallback();
     return getLocal<EnquirySubmission>('molecule_enquiries').filter(e => e.userId === userId || e.email === userId);
   }
@@ -599,7 +616,7 @@ export async function getAllVideos(): Promise<Video[]> {
 
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_vids') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
   } catch {
     // Safe fallback
   }
@@ -652,14 +669,14 @@ export async function getAllVideos(): Promise<Video[]> {
 export async function deleteVideo(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_vids') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_vids') || '[]');
   } catch {
     // Safe handle
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      safeStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
+      localStorage.setItem('molecule_deleted_vids', JSON.stringify(deletedIdsList));
     } catch {
       // Safe handle
     }
@@ -717,7 +734,7 @@ export async function savePhotograph(photo: Omit<Photograph, 'id' | 'createdAt'>
 export async function getAllPhotographs(): Promise<Photograph[]> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_photos') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
   } catch {
     // Safe fallback
   }
@@ -755,14 +772,14 @@ export async function getAllPhotographs(): Promise<Photograph[]> {
 export async function deletePhotograph(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_photos') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_photos') || '[]');
   } catch {
     // Safe fallback
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      safeStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
+      localStorage.setItem('molecule_deleted_photos', JSON.stringify(deletedIdsList));
     } catch {
       // Safe fallback
     }
@@ -842,7 +859,7 @@ export async function getAllReviews(): Promise<Review[]> {
 
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_reviews') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
   } catch {
     // ignore
   }
@@ -921,14 +938,14 @@ export async function saveReview(review: Omit<Review, 'id' | 'createdAt'>): Prom
 export async function deleteReview(id: string): Promise<void> {
   let deletedIdsList: string[] = [];
   try {
-    deletedIdsList = JSON.parse(safeStorage.getItem('molecule_deleted_reviews') || '[]');
+    deletedIdsList = JSON.parse(localStorage.getItem('molecule_deleted_reviews') || '[]');
   } catch {
     // Safe fallback
   }
   if (!deletedIdsList.includes(id)) {
     deletedIdsList.push(id);
     try {
-      safeStorage.setItem('molecule_deleted_reviews', JSON.stringify(deletedIdsList));
+      localStorage.setItem('molecule_deleted_reviews', JSON.stringify(deletedIdsList));
     } catch {
       // Safe fallback
     }

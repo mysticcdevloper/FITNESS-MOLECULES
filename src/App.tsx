@@ -45,9 +45,9 @@ import {
   disableLocalFallback,
   getAllReviews,
   saveReview,
-  deleteReview
+  deleteReview,
+  seedLiveFirestoreData
 } from './lib/firebaseService';
-import { safeStorage } from './lib/safeStorage';
 
 export interface AppUser {
   uid: string;
@@ -96,6 +96,30 @@ export default function App() {
     try {
       const list = await getAllReviews();
       setReviews(list);
+
+      // Auto-seed: if list loaded successfully (meaning database is accessible/rules are open),
+      // and we haven't done an auto-seed in this browser yet, let's trigger seedLiveFirestoreData
+      // to automatically populate their live Firebase Console in the background!
+      const isAutoSeeded = localStorage.getItem('molecule_auto_seeded_v2');
+      if (!isAutoSeeded && !isFallbackActive()) {
+        localStorage.setItem('molecule_auto_seeded_v2', 'pending');
+        setTimeout(async () => {
+          try {
+            console.log("Empty or unpopulated live database detected. Attempting automatic background seeding...");
+            const seedRes = await seedLiveFirestoreData();
+            if (seedRes.success) {
+              localStorage.setItem('molecule_auto_seeded_v2', 'success');
+              console.log("Automatic background seeding succeeded! Live database is now fully populated.", seedRes.seededCounts);
+              // Refresh reviews to load any newly seeded ones if needed
+              const refreshed = await getAllReviews();
+              setReviews(refreshed);
+            }
+          } catch (seedErr) {
+            console.warn("Background auto-seeding skipped (permissions or empty database rules state):", seedErr);
+            localStorage.removeItem('molecule_auto_seeded_v2');
+          }
+        }, 1000);
+      }
     } catch (err) {
       console.error("Failed to load reviews:", err);
     } finally {
@@ -137,7 +161,7 @@ export default function App() {
   // Sync user state and data from Firestore or Local Storage Sandbox
   useEffect(() => {
     // Check if there is an active local sandbox user session
-    const savedSandbox = safeStorage.getItem('molecule_sandbox_user');
+    const savedSandbox = localStorage.getItem('molecule_sandbox_user');
     if (savedSandbox) {
       try {
         const parsed = JSON.parse(savedSandbox);
@@ -155,7 +179,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         // Only override if there is no active sandbox session
-        if (!safeStorage.getItem('molecule_sandbox_user')) {
+        if (!localStorage.getItem('molecule_sandbox_user')) {
           const u: AppUser = {
             uid: currentUser.uid,
             email: currentUser.email,
@@ -170,7 +194,7 @@ export default function App() {
         }
       } else {
         // Clear if not in sandbox mode
-        if (!safeStorage.getItem('molecule_sandbox_user')) {
+        if (!localStorage.getItem('molecule_sandbox_user')) {
           setUser(null);
           setRegistrations([]);
           setTrainerBookings([]);
@@ -399,9 +423,10 @@ export default function App() {
         user={user}
         onAuthClick={() => setIsAuthOpen(true)}
         onSignOut={async () => {
-          if (user?.isSandbox || safeStorage.getItem('molecule_sandbox_user')) {
+          disableLocalFallback();
+          if (user?.isSandbox || localStorage.getItem('molecule_sandbox_user')) {
             setUser(null);
-            safeStorage.removeItem('molecule_sandbox_user');
+            localStorage.removeItem('molecule_sandbox_user');
             setRegistrations([]);
             setTrainerBookings([]);
             setClassBookings([]);
@@ -414,7 +439,7 @@ export default function App() {
               console.error("Firebase signout error:", err);
             }
             setUser(null);
-            safeStorage.removeItem('molecule_sandbox_user');
+            localStorage.removeItem('molecule_sandbox_user');
             setRegistrations([]);
             setTrainerBookings([]);
             setClassBookings([]);
@@ -611,7 +636,7 @@ export default function App() {
       
       {activeTab === 'plans' && <MembershipPlans onJoinClick={triggerJoinPlan} />}
       
-      {activeTab === 'gallery' && <GallerySection user={user} />}
+      {activeTab === 'gallery' && <GallerySection />}
       
       {activeTab === 'contact' && <ContactSection onEnquirySubmit={handleEnquirySubmit} />}
       

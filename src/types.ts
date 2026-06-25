@@ -110,6 +110,7 @@ export interface MembershipRegistration {
   startDate: string;
   paymentMethod: string;
   createdAt: string;
+  clientImage?: string;
 }
 
 export interface PersonalTrainerBooking {

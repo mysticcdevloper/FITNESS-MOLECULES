@@ -14,7 +14,7 @@ interface NavbarProps {
   setActiveTab: (tab: string) => void;
   openJoinModal: (planId?: string) => void;
   hasDashboardData: boolean;
-  user: any;
+  user: FirebaseUser | null;
   onAuthClick: () => void;
   onSignOut: () => void;
 }
@@ -44,20 +44,15 @@ export default function Navbar({ activeTab, setActiveTab, openJoinModal, hasDash
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div 
-            className="flex items-center space-x-2 cursor-pointer group"
+            className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => handleTabClick('home')}
           >
             <div className="relative w-12 h-12 flex items-center justify-center rounded-xl bg-zinc-950/80 border border-zinc-900 overflow-hidden group-hover:border-zinc-800 transition-all duration-300 shadow-md shadow-red-500/5">
               <FMLogo size={46} className="transform group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-display font-black text-2xl tracking-wider text-white leading-none">
-                FITNESS <span className="text-red-500">MOLECULE</span>
-              </span>
-              <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
-                Science-Backed Human Peak Performance
-              </span>
-            </div>
+            <span className="font-display font-black text-2xl tracking-wider text-white leading-none">
+              FITNESS <span className="text-red-500">MOLECULE</span>
+            </span>
           </div>
 
           {/* Desktop Navigation */}

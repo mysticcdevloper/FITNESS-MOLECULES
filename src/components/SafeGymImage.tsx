@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dumbbell, Activity, ShieldCheck } from 'lucide-react';
+import { getLocalImageBlob } from '../lib/imageStorage';
 
 interface SafeGymImageProps {
   src: string;
@@ -16,23 +17,66 @@ interface SafeGymImageProps {
 export default function SafeGymImage({ src, alt, className = 'w-full h-full object-cover', categoryHint }: SafeGymImageProps) {
   const [hasError, setHasError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [resolvedUrl, setResolvedUrl] = useState<string>('');
+  const [localLoading, setLocalLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl = '';
+
+    const loadImage = async () => {
+      if (src && src.startsWith('indexeddb-img://')) {
+        const id = src.replace('indexeddb-img://', '');
+        setLocalLoading(true);
+        try {
+          const file = await getLocalImageBlob(id);
+          if (!active) return;
+          if (file) {
+            objectUrl = URL.createObjectURL(file);
+            setResolvedUrl(objectUrl);
+          } else {
+            setResolvedUrl('');
+            setHasError(true);
+          }
+        } catch (err) {
+          console.error("Failed to load local image blob in SafeGymImage:", err);
+          if (active) setHasError(true);
+        } finally {
+          if (active) setLocalLoading(false);
+        }
+      } else {
+        setResolvedUrl(src);
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [src]);
+
+  const isLoading = loading || localLoading;
 
   return (
     <div className="w-full h-full relative bg-zinc-950 flex items-center justify-center overflow-hidden">
       {/* Biomechanical Blueprint Grid lines */}
       <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
 
-      {loading && !hasError && (
+      {isLoading && !hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 z-10">
           <Activity className="h-5 w-5 text-red-500/30 animate-pulse" />
         </div>
       )}
 
-      {!hasError ? (
+      {!hasError && resolvedUrl ? (
         <img
-          src={src}
+          src={resolvedUrl}
           alt={alt}
-          className={`${className} ${loading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} transition-all duration-500`}
+          className={`${className} ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} transition-all duration-500`}
           onLoad={() => setLoading(false)}
           onError={() => setHasError(true)}
           referrerPolicy="no-referrer"

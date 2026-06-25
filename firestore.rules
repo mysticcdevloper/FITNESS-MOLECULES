@@ -2,363 +2,93 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Global Safety Net & Default Deny
+    // Default Deny
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // --- REUSABLE SECURITY UTILITY PRIMITIVES ---
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Only email-verified or active email matching our admin
     function isAdmin() {
-      return isSignedIn() && (request.auth.token.email == "aayush.fitnessmolecules@gmail.com" || request.auth.token.email == "aayush.fitnessmolecule@gmail.com" || request.auth.token.email == "itsofficialrupeshcsa@gmail.com");
+      return isSignedIn() && (
+        request.auth.token.email == "aayush.fitnessmolecules@gmail.com" || 
+        request.auth.token.email == "aayush.fitnessmolecule@gmail.com" || 
+        request.auth.token.email == "itsofficialrupeshcsa@gmail.com"
+      );
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    // --- ENTITY SCHEMA VALIDATION BLUEPRINTS ---
-    
-    function isValidUser(data) {
-      return data.keys().hasAll(['userId', 'email']) 
-        && data.userId == request.auth.uid 
-        && data.email is string 
-        && data.email.size() <= 150
-        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 150))
-        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 30))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidRegistration(data) {
-      return data.keys().hasAll(['id', 'userId', 'planId', 'planName', 'fullName', 'email', 'phone']) 
-        && data.userId == request.auth.uid
-        && data.id is string 
-        && data.id.size() <= 64
-        && data.planId is string 
-        && data.planId.size() <= 100
-        && data.planName is string 
-        && data.planName.size() <= 200
-        && data.fullName is string 
-        && data.fullName.size() <= 200
-        && data.email is string 
-        && data.email.size() <= 150
-        && data.phone is string 
-        && data.phone.size() <= 50
-        && (!('startDate' in data) || (data.startDate is string && data.startDate.size() <= 50))
-        && (!('planDuration' in data) || (data.planDuration is string && data.planDuration.size() <= 100))
-        && (!('planPrice' in data) || (data.planPrice is string && data.planPrice.size() <= 50))
-        && (!('paymentMethod' in data) || (data.paymentMethod is string && data.paymentMethod.size() <= 100))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidRegistrationAdmin(data) {
-      return data.keys().hasAll(['id', 'userId', 'planId', 'planName', 'fullName', 'email', 'phone']) 
-        && data.id is string 
-        && data.id.size() <= 64
-        && data.planId is string 
-        && data.planId.size() <= 100
-        && data.planName is string 
-        && data.planName.size() <= 200
-        && data.fullName is string 
-        && data.fullName.size() <= 200
-        && data.email is string 
-        && data.email.size() <= 150
-        && data.phone is string 
-        && data.phone.size() <= 50
-        && (!('startDate' in data) || (data.startDate is string && data.startDate.size() <= 50))
-        && (!('planDuration' in data) || (data.planDuration is string && data.planDuration.size() <= 100))
-        && (!('planPrice' in data) || (data.planPrice is string && data.planPrice.size() <= 50))
-        && (!('paymentMethod' in data) || (data.paymentMethod is string && data.paymentMethod.size() <= 100))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidTrainerBooking(data) {
-      return data.keys().hasAll(['id', 'userId', 'trainerId', 'trainerName', 'clientName', 'clientEmail', 'bookingDate', 'bookingTime'])
-        && data.userId == request.auth.uid
-        && data.id is string 
-        && data.id.size() <= 64
-        && data.trainerId is string 
-        && data.trainerId.size() <= 100
-        && data.trainerName is string 
-        && data.trainerName.size() <= 150
-        && data.clientName is string 
-        && data.clientName.size() <= 200
-        && data.clientEmail is string 
-        && data.clientEmail.size() <= 150
-        && data.bookingDate is string 
-        && data.bookingDate.size() <= 50
-        && data.bookingTime is string 
-        && data.bookingTime.size() <= 50
-        && (!('clientPhone' in data) || (data.clientPhone is string && data.clientPhone.size() <= 50))
-        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidTrainerBookingAdmin(data) {
-      return data.keys().hasAll(['id', 'userId', 'trainerId', 'trainerName', 'clientName', 'clientEmail', 'bookingDate', 'bookingTime'])
-        && data.id is string 
-        && data.id.size() <= 64
-        && data.trainerId is string 
-        && data.trainerId.size() <= 100
-        && data.trainerName is string 
-        && data.trainerName.size() <= 150
-        && data.clientName is string 
-        && data.clientName.size() <= 200
-        && data.clientEmail is string 
-        && data.clientEmail.size() <= 150
-        && data.bookingDate is string 
-        && data.bookingDate.size() <= 50
-        && data.bookingTime is string 
-        && data.bookingTime.size() <= 50
-        && (!('clientPhone' in data) || (data.clientPhone is string && data.clientPhone.size() <= 50))
-        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidClassBooking(data) {
-      return data.keys().hasAll(['id', 'userId', 'classId', 'className', 'trainerName', 'clientName', 'clientEmail', 'sessionTime'])
-        && data.userId == request.auth.uid
-        && data.id is string
-        && data.id.size() <= 64
-        && data.classId is string
-        && data.classId.size() <= 100
-        && data.className is string
-        && data.className.size() <= 200
-        && data.trainerName is string
-        && data.trainerName.size() <= 150
-        && data.clientName is string
-        && data.clientName.size() <= 200
-        && data.clientEmail is string
-        && data.clientEmail.size() <= 150
-        && data.sessionTime is string
-        && data.sessionTime.size() <= 100
-        && (!('clientPhone' in data) || (data.clientPhone is string && data.clientPhone.size() <= 50))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidClassBookingAdmin(data) {
-      return data.keys().hasAll(['id', 'userId', 'classId', 'className', 'trainerName', 'clientName', 'clientEmail', 'sessionTime'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.classId is string
-        && data.classId.size() <= 100
-        && data.className is string
-        && data.className.size() <= 200
-        && data.trainerName is string
-        && data.trainerName.size() <= 150
-        && data.clientName is string
-        && data.clientName.size() <= 200
-        && data.clientEmail is string
-        && data.clientEmail.size() <= 150
-        && data.sessionTime is string
-        && data.sessionTime.size() <= 100
-        && (!('clientPhone' in data) || (data.clientPhone is string && data.clientPhone.size() <= 50))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidEnquiry(data) {
-      return data.keys().hasAll(['id', 'userId', 'name', 'phone', 'email', 'age', 'fitnessGoal'])
-        && data.userId == request.auth.uid
-        && data.id is string
-        && data.id.size() <= 64
-        && data.name is string
-        && data.name.size() <= 200
-        && data.phone is string
-        && data.phone.size() <= 50
-        && data.email is string
-        && data.email.size() <= 150
-        && data.age is int
-        && data.age >= 0 && data.age <= 120
-        && data.fitnessGoal is string
-        && data.fitnessGoal.size() <= 100
-        && (!('message' in data) || (data.message is string && data.message.size() <= 2000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidEnquiryAdmin(data) {
-      return data.keys().hasAll(['id', 'userId', 'name', 'phone', 'email', 'age', 'fitnessGoal'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.name is string
-        && data.name.size() <= 200
-        && data.phone is string
-        && data.phone.size() <= 50
-        && data.email is string
-        && data.email.size() <= 150
-        && data.age is int
-        && data.age >= 0 && data.age <= 120
-        && data.fitnessGoal is string
-        && data.fitnessGoal.size() <= 100
-        && (!('message' in data) || (data.message is string && data.message.size() <= 2000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidAttendance(data) {
-      return data.keys().hasAll(['id', 'clientName', 'clientEmail', 'clientPhone', 'date', 'status'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.clientName is string
-        && data.clientName.size() <= 200
-        && data.clientEmail is string
-        && data.clientEmail.size() <= 150
-        && data.clientPhone is string
-        && data.clientPhone.size() <= 50
-        && data.date is string
-        && data.date.size() <= 50
-        && data.status is string
-        && (data.status == 'Present' || data.status == 'Absent' || data.status == 'Late')
-        && (!('checkInTime' in data) || (data.checkInTime is string && data.checkInTime.size() <= 50))
-        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 2000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidVideo(data) {
-      return data.keys().hasAll(['id', 'title', 'url'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.title is string
-        && data.title.size() <= 200
-        && data.url is string
-        && data.url.size() <= 10000000
-        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
-        && (!('uploaderName' in data) || (data.uploaderName is string && data.uploaderName.size() <= 150))
-        && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidPhotograph(data) {
-      return data.keys().hasAll(['id', 'caption', 'url'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.caption is string
-        && data.caption.size() <= 200
-        && data.url is string
-        && data.url.size() <= 10000000
-        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
-        && (!('uploaderName' in data) || (data.uploaderName is string && data.uploaderName.size() <= 150))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
-
-    function isValidReview(data) {
-      return data.keys().hasAll(['id', 'name', 'quote', 'rating'])
-        && data.id is string
-        && data.id.size() <= 64
-        && data.name is string
-        && data.name.size() <= 200
-        && data.quote is string
-        && data.quote.size() <= 2000
-        && data.rating is int
-        && data.rating >= 1 && data.rating <= 5
-        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 64))
-        && (!('role' in data) || (data.role is string && data.role.size() <= 250))
-        && (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 2000))
-        && (!('isGoogle' in data) || (data.isGoogle is bool))
-        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 100));
-    }
-
-    // --- RULES FOR SPECIFIC MATCH PATHS ---
-
-    // 1. Users Profile Match
+    // 1. Users Profile
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin() || userId == "admin_seed";
-      allow create: if (isOwner(userId) && isValidUser(incoming())) || isAdmin();
-      allow update: if (isOwner(userId) && isValidUser(incoming()) && incoming().userId == existing().userId) || isAdmin();
-      allow delete: if isOwner(userId) || isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // 2. Membership Plan Registrations
+    // 2. Registrations
     match /registrations/{registrationId} {
-      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
-      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create: if (registrationId == "reg_default_demo_1" && isValidRegistrationAdmin(incoming())) 
-                    || (isSignedIn() && isValidId(registrationId) && (isValidRegistration(incoming()) || (isAdmin() && isValidRegistrationAdmin(incoming()))));
-      allow update: if isSignedIn() && isValidId(registrationId) && ((existing().userId == request.auth.uid && isValidRegistration(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidRegistrationAdmin(incoming())));
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()) && (request.resource.data.userId == resource.data.userId || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // 3. 1-on-1 Personal Trainer Bookings
+    // 3. Personal Trainer Bookings
     match /trainerBookings/{bookingId} {
-      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
-      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create: if (bookingId == "tb_default_demo_1" && isValidTrainerBookingAdmin(incoming()))
-                    || (isSignedIn() && isValidId(bookingId) && (isValidTrainerBooking(incoming()) || (isAdmin() && isValidTrainerBookingAdmin(incoming()))));
-      allow update: if isSignedIn() && isValidId(bookingId) && ((existing().userId == request.auth.uid && isValidTrainerBooking(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidTrainerBookingAdmin(incoming())));
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()) && (request.resource.data.userId == resource.data.userId || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // 4. Group Class Bookings
     match /classBookings/{bookingId} {
-      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
-      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create: if isSignedIn() && isValidId(bookingId) && (isValidClassBooking(incoming()) || (isAdmin() && isValidClassBookingAdmin(incoming())));
-      allow update: if isSignedIn() && isValidId(bookingId) && ((existing().userId == request.auth.uid && isValidClassBooking(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidClassBookingAdmin(incoming())));
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()) && (request.resource.data.userId == resource.data.userId || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // 5. Diagnostics Enquiries
     match /enquiries/{enquiryId} {
-      allow get: if (existing().userId == "admin_seed") || (isSignedIn() && (existing().userId == request.auth.uid || isAdmin()));
-      allow list: if (resource.data.userId == "admin_seed") || (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create: if (enquiryId == "enq_default_demo_1" && isValidEnquiryAdmin(incoming()))
-                    || (isSignedIn() && isValidId(enquiryId) && (isValidEnquiry(incoming()) || (isAdmin() && isValidEnquiryAdmin(incoming()))));
-      allow update: if isSignedIn() && isValidId(enquiryId) && ((existing().userId == request.auth.uid && isValidEnquiry(incoming()) && incoming().userId == existing().userId) || (isAdmin() && isValidEnquiryAdmin(incoming())));
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()) && (request.resource.data.userId == resource.data.userId || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // 6. Athlete Attendance Logs
     match /attendance/{attendanceId} {
-      allow get: if (attendanceId in ["att_1", "att_2", "att_3"]) || (isSignedIn() && isAdmin());
-      allow list: if (resource.data.clientEmail in ["ramesh@molecule.fit", "vijay@molecule.fit", "neha.sharma@molecule.fit"]) || (isSignedIn() && isAdmin());
-      allow create: if (attendanceId in ["att_1", "att_2", "att_3"] && isValidAttendance(incoming()))
-                    || (isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming()));
-      allow update: if isSignedIn() && isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
-      allow delete: if isSignedIn() && isAdmin();
+      allow read, write: if isSignedIn() && isAdmin();
     }
 
-    // 7. Gym Gallery Video Walkthroughs
+    // 7. Gallery Videos
     match /videos/{videoId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if (videoId in ["vid_3", "vid_4", "vid_5"] && isValidVideo(incoming()))
-                    || (isSignedIn() && isValidId(videoId) && isValidVideo(incoming()));
-      allow update: if isSignedIn() && isValidId(videoId) && isValidVideo(incoming()) && (existing().userId == request.auth.uid || isAdmin());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-    }
-    
-    // 8. Gym Gallery Photographs
-    match /photographs/{photographId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if (photographId in ["photo_1", "photo_2", "photo_3"] && isValidPhotograph(incoming()))
-                    || (isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()));
-      allow update: if isSignedIn() && isValidId(photographId) && isValidPhotograph(incoming()) && (existing().userId == request.auth.uid || isAdmin());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // 9. Gym Reviews (Google Maps & Web Dynamic Reviews)
+    // 8. Gallery Photographs
+    match /photographs/{photographId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // 9. Reviews
     match /reviews/{reviewId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if (reviewId in ["rev_seed1", "rev_seed2", "rev_seed3", "rev_seed4", "rev_seed5"] && isValidReview(incoming()))
-                    || (isSignedIn() && isValidId(reviewId) && isValidReview(incoming()));
-      allow update: if isSignedIn() && isValidId(reviewId) && (existing().userId == request.auth.uid || isAdmin()) && isValidReview(incoming());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

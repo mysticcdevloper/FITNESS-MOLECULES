@@ -46,6 +46,8 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { TRAINERS, CLASSES, PLANS } from '../data/gymData';
+import { storeLocalImageBlob, compressAndConvertToBase64 } from '../lib/imageStorage';
+import SafeGymImage from './SafeGymImage';
 
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState<'memberships' | 'trainers' | 'classes' | 'enquiries' | 'attendance'>('memberships');
@@ -70,6 +72,9 @@ export default function AdminPortal() {
   const [mPhone, setMPhone] = useState('');
   const [mStartDate, setMStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [mPaymentMethod, setMPaymentMethod] = useState<'gpay' | 'paytm' | 'phonepe' | 'cash_on_counter' | 'card_pos'>('cash_on_counter');
+  const [mClientImageUploadType, setMClientImageUploadType] = useState<'link' | 'file'>('file');
+  const [mClientImageFile, setMClientImageFile] = useState<File | null>(null);
+  const [mClientImageLink, setMClientImageLink] = useState('');
 
   // New Trainer Booking Form State
   const [bTrainerId, setBTrainerId] = useState('t1');
@@ -179,6 +184,20 @@ export default function AdminPortal() {
     try {
       if (addType === 'membership') {
         const selectedPlan = PLANS.find(p => p.id === mPlanId) || PLANS[0];
+        
+        let finalClientImageUrl = '';
+        if (mClientImageUploadType === 'file' && mClientImageFile) {
+          try {
+            finalClientImageUrl = await compressAndConvertToBase64(mClientImageFile);
+          } catch (err) {
+            console.error("Failed to compress and convert client image, falling back to local store:", err);
+            const imgId = "client_plan_" + Math.random().toString(36).substring(2, 11);
+            finalClientImageUrl = await storeLocalImageBlob(imgId, mClientImageFile);
+          }
+        } else if (mClientImageUploadType === 'link' && mClientImageLink.trim()) {
+          finalClientImageUrl = mClientImageLink.trim();
+        }
+
         const newRecord = {
           planId: selectedPlan.id,
           planName: selectedPlan.name,
@@ -188,12 +207,15 @@ export default function AdminPortal() {
           email: mEmail,
           phone: mPhone,
           startDate: mStartDate,
-          paymentMethod: mPaymentMethod
+          paymentMethod: mPaymentMethod,
+          clientImage: finalClientImageUrl
         };
         await saveRegistration(generatedUserId, newRecord);
         setMFullName('');
         setMEmail('');
         setMPhone('');
+        setMClientImageFile(null);
+        setMClientImageLink('');
       } else if (addType === 'trainer') {
         const selectedTrainer = TRAINERS.find(t => t.id === bTrainerId) || TRAINERS[0];
         const newRecord = {
@@ -382,13 +404,34 @@ export default function AdminPortal() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap lg:flex-nowrap">
             <button
               onClick={fetchData}
               className="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-red-500 rounded-xl transition-all cursor-pointer"
               title="Sync Datastore"
             >
               <RefreshCw className={`h-4.5 w-4.5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              disabled={seedingStatus === 'seeding'}
+              onClick={handleSeedLiveFirestore}
+              className={`flex items-center space-x-2 font-bold px-5 py-3 rounded-xl text-xs sm:text-sm uppercase tracking-wider transition-all cursor-pointer shadow-lg ${
+                seedingStatus === 'seeding'
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'
+                  : seedingStatus === 'success'
+                  ? 'bg-green-500 hover:bg-green-400 text-black shadow-green-500/10'
+                  : 'bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-red-500 text-zinc-300'
+              }`}
+              title="Seed Live Firestore Database"
+            >
+              <Sparkles className={`h-4 w-4 ${seedingStatus === 'seeding' ? 'animate-spin' : ''}`} />
+              <span>
+                {seedingStatus === 'seeding' 
+                  ? 'Seeding...' 
+                  : seedingStatus === 'success' 
+                  ? 'Seeded ✔' 
+                  : 'Seed DB'}
+              </span>
             </button>
             <button
               onClick={() => {
@@ -408,120 +451,18 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {/* Cloud Firestore Seeding & Sync Notification Box */}
-        <div className="bg-gradient-to-r from-red-500/10 to-zinc-900 border border-zinc-850/60 p-6 rounded-3xl mb-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 animate-in fade-in duration-500">
-          <div className="space-y-2.5 max-w-3xl hidden">
-            <div className="flex items-center gap-2 text-red-500">
-              <Sparkles className="h-4 w-4 text-red-500 animate-pulse" />
-              <span className="text-xs font-mono font-bold tracking-wider uppercase">Cloud Firestore Optimization Hub</span>
+        {seedingStatus === 'success' && seededCounts && (
+          <div className="mb-8 bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between text-xs font-mono text-green-400 animate-in slide-in-from-top-2 duration-300">
+            <span className="font-bold uppercase text-white flex items-center gap-1.5 shrink-0">
+              <Check className="h-4 w-4 bg-green-500 text-black rounded-full p-0.5 animate-bounce" />
+              Live Firestore Populated Successfully!
+            </span>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-zinc-300">
+              <span>• Reviews: {seededCounts.reviews}</span>
+              <span>• Videos: {seededCounts.videos}</span>
+              <span>• Attendance: {seededCounts.attendance}</span>
+              <span>• Bookings: {seededCounts.registrations}</span>
             </div>
-            <h3 className="text-lg font-bold text-white font-display uppercase tracking-tight">Is your Firebase Firestore Database empty?</h3>
-            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              By default, your live Google Cloud Firestore console displays <code className="text-red-400 bg-red-500/5 px-1.5 py-0.5 rounded font-mono">0 collections</code> because reviews, walkthrough walkthrough videos, and booking records are read from local fallback configurations to guarantee an instantaneous, zero-latency preview experience. Click the seed button to instantly populate your live cloud database with realistic athlete logs, verified reviews, and check-in schedules.
-            </p>
-            
-            {seedingStatus === 'success' && seededCounts && (
-              <div className="mt-3.5 bg-green-500/10 border border-green-500/20 p-4 rounded-xl flex flex-col sm:flex-row gap-x-5 gap-y-2 text-xs font-mono text-green-400 animate-in slide-in-from-top-2 duration-300">
-                <span className="font-bold uppercase text-white flex items-center gap-1.5 shrink-0">
-                  <Check className="h-4 w-4 bg-green-500 text-black rounded-full p-0.5" />
-                  Live Firestore Populated Successfully!
-                </span>
-                <div className="flex flex-wrap gap-2 text-[11px] text-zinc-300">
-                  <span>• Reviews: {seededCounts.reviews}</span>
-                  <span>• Videos: {seededCounts.videos}</span>
-                  <span>• Attendance: {seededCounts.attendance}</span>
-                  <span>• Memberships: {seededCounts.registrations}</span>
-                  <span>• Trainers: {seededCounts.trainerBookings}</span>
-                  <span>• Enquiries: {seededCounts.enquiries}</span>
-                </div>
-              </div>
-            )}
-
-            {seedingStatus === 'error' && seedingError && (
-              <div className="mt-4 bg-red-500/10 border border-red-500/20 p-5 rounded-2xl text-xs font-mono text-red-400 space-y-3 animate-in slide-in-from-top-3 duration-300">
-                <div className="font-bold uppercase text-white flex items-center gap-1.5 text-sm">
-                  <ShieldAlert className="h-4.5 w-4.5 text-red-500" />
-                  <span>Database Connection / Permission Alert</span>
-                </div>
-                
-                <p className="text-zinc-300 font-sans text-xs sm:text-[13px] leading-relaxed">
-                  Your live Google Cloud console is blocking this client from writing records. This is because your Firestore Security Rules on the Google portal are set to reject database writes (the default setup of <code className="text-red-400 font-mono bg-black/40 px-1 py-0.5 rounded">allow read, write: if false;</code>).
-                </p>
-
-                <div className="bg-black/30 p-3.5 rounded-xl border border-red-500/10 space-y-2 text-zinc-400 font-sans leading-relaxed text-[11px] sm:text-xs">
-                  <div className="font-semibold text-zinc-200">How to fix this in 1-Click:</div>
-                  <ol className="list-decimal list-inside space-y-1.5 leading-normal text-zinc-300">
-                    <li>
-                      Open your <a href="https://console.firebase.google.com/project/fitness-moleculess-b24c4/firestore/rules" target="_blank" rel="noopener noreferrer" className="text-red-400 underline hover:text-red-300 font-bold font-mono">Firebase Rules Editor ↗</a>
-                    </li>
-                    <li>
-                      Under the <span className="text-zinc-200">"Rules"</span> tab, temporarily change to:
-                      <div className="bg-black/50 p-2 rounded-lg text-amber-400 font-mono mt-1 font-bold text-[11px]">
-                        allow read, write: if true;
-                      </div>
-                    </li>
-                    <li>
-                      Click <span className="text-white bg-red-500/40 px-1.5 py-0.5 rounded font-mono font-bold">Publish</span>, wait 10 seconds, then click the Seed button again!
-                    </li>
-                    <li className="text-[10px] text-zinc-400 italic">
-                      (After seeding is successful, you can restore your secure rules to protect your production data).
-                    </li>
-                  </ol>
-                </div>
-
-                <div className="text-[10px] text-zinc-500 leading-normal font-mono uppercase tracking-wide border-t border-zinc-850 pt-2 break-all">
-                  Diagnostic Error Log: {seedingError}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="shrink-0 w-full lg:w-auto">
-            <button
-              disabled={seedingStatus === 'seeding'}
-              onClick={handleSeedLiveFirestore}
-              className={`w-full lg:w-auto px-6 py-3.5 rounded-2xl font-bold font-display text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
-                seedingStatus === 'seeding'
-                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'
-                  : seedingStatus === 'success'
-                  ? 'bg-green-500 hover:bg-green-400 text-black shadow-green-500/10 font-bold'
-                  : 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/15 animate-pulse'
-              }`}
-            >
-              <RefreshCw className={`h-4.5 w-4.5 ${seedingStatus === 'seeding' ? 'animate-spin' : ''}`} />
-              <span>
-                {seedingStatus === 'seeding' 
-                  ? 'Writing Live Records...' 
-                  : seedingStatus === 'success' 
-                  ? 'Cloud Synced ✔' 
-                  : '⚡ Seed Live Firestore Database'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {isFallbackActive() && (
-          <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl mb-8 flex flex-col md:flex-row items-col md:items-center justify-between gap-4 animate-in fade-in duration-300">
-            <div className="flex items-start space-x-3.5">
-              <div className="bg-amber-500/10 p-2 rounded-xl text-amber-400 mt-0.5 md:mt-0 shrink-0">
-                <Sparkles className="h-5 w-5 animate-pulse" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-amber-400 font-mono uppercase tracking-wide">Developer Sandbox Mode Active</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed mt-1">
-                  This application is currently writing athlete registrations and scheduling telemetry to the browser’s Local Sandbox Session. Under sandbox environments, this bypasses dynamic domain authorization limits. To sync everything live onto production Google Cloud, add your preview URL inside your Firebase Console settings.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                disableLocalFallback();
-                window.location.reload();
-              }}
-              className="px-4 py-2 bg-amber-500 text-black font-bold text-xs rounded-xl hover:bg-amber-400 transition-colors uppercase shrink-0 font-mono tracking-wider cursor-pointer"
-            >
-              🔄 Reconnect Live Cloud
-            </button>
           </div>
         )}
 
@@ -654,35 +595,46 @@ export default function AdminPortal() {
                         <span className="absolute top-4 right-4 bg-red-500/10 border border-red-500/10 text-red-500 font-mono text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                           PLAN: {reg.planDuration}
                         </span>
-                        
-                        <div>
-                          <div className="flex items-center space-x-2 text-zinc-200">
-                            <span className="bg-zinc-950 p-2 text-red-500 rounded-lg">
-                              <Award className="h-4 w-4" />
-                            </span>
-                            <div>
-                              <h4 className="text-white font-display font-bold text-lg leading-tight uppercase">{reg.planName}</h4>
-                              <p className="text-[10px] font-mono text-zinc-500 mt-0.5">PRICE: {reg.planPrice}</p>
+                          <div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-zinc-200">
+                              <span className="bg-zinc-950 p-2 text-red-500 rounded-lg">
+                                <Award className="h-4 w-4" />
+                              </span>
+                              <div>
+                                <h4 className="text-white font-display font-bold text-lg leading-tight uppercase">{reg.planName}</h4>
+                                <p className="text-[10px] font-mono text-zinc-500 mt-0.5">PRICE: {reg.planPrice}</p>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="mt-4 border-t border-zinc-850 pt-4 space-y-2 text-xs font-sans">
-                            <div className="flex items-center space-x-2">
-                              <User className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-                              <span className="text-zinc-300 font-medium">Client: </span>
-                              <span className="text-white font-medium">{reg.fullName}</span>
+                          <div className="mt-4 border-t border-zinc-850 pt-4">
+                            <div className="flex items-center space-x-4">
+                              {reg.clientImage && (
+                                <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-red-500/20 shadow-md shrink-0 bg-zinc-950 flex items-center justify-center">
+                                  <SafeGymImage src={reg.clientImage} alt={reg.fullName} className="h-full w-full object-cover object-center" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0 space-y-2 text-xs font-sans">
+                                <div className="flex items-center space-x-2">
+                                  <User className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                  <span className="text-zinc-300 font-medium">Client: </span>
+                                  <span className="text-white font-medium truncate">{reg.fullName}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Mail className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                  <span className="text-zinc-400">Email: </span>
+                                  <span className="text-zinc-200 select-all truncate">{reg.email}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Phone className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                  <span className="text-zinc-400 font-mono">Contact: </span>
+                                  <span className="text-zinc-200 font-mono">{reg.phone}</span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Mail className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-                              <span className="text-zinc-400">Email: </span>
-                              <span className="text-zinc-200 select-all truncate">{reg.email}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Phone className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-                              <span className="text-zinc-400 font-mono">Contact: </span>
-                              <span className="text-zinc-200 font-mono">{reg.phone}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 mt-3 bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-900">
+
+                            <div className="grid grid-cols-2 gap-4 mt-4 bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-900">
                               <div>
                                 <span className="block text-[8px] font-mono text-zinc-500 uppercase">Activated</span>
                                 <span className="block text-[11px] font-medium text-white italic mt-0.5">{reg.startDate}</span>
@@ -1304,6 +1256,79 @@ export default function AdminPortal() {
                           <option value="card_pos">Credit/Debit POS Terminal</option>
                         </select>
                       </div>
+                    </div>
+
+                    {/* Client Photograph Upload Section */}
+                    <div className="border-t border-zinc-850 pt-3 mt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-zinc-400 font-mono uppercase tracking-wider text-[10px]">Client Photograph</label>
+                        <div className="flex items-center space-x-2 bg-zinc-950 border border-zinc-850 rounded-lg p-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setMClientImageUploadType('file')}
+                            className={`px-2 py-1 rounded text-[9px] font-mono uppercase tracking-wider font-bold transition-all ${mClientImageUploadType === 'file' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                          >
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMClientImageUploadType('link')}
+                            className={`px-2 py-1 rounded text-[9px] font-mono uppercase tracking-wider font-bold transition-all ${mClientImageUploadType === 'link' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                          >
+                            Paste Link
+                          </button>
+                        </div>
+                      </div>
+
+                      {mClientImageUploadType === 'file' ? (
+                        <div className="relative group">
+                          {mClientImageFile ? (
+                            <div className="relative h-24 w-full bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden flex items-center justify-center">
+                              <img
+                                src={URL.createObjectURL(mClientImageFile)}
+                                alt="Client Preview"
+                                className="h-full w-auto object-contain"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setMClientImageFile(null)}
+                                className="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-500 text-white rounded-full transition-colors cursor-pointer"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl h-24 cursor-pointer transition-all bg-zinc-950/55 hover:bg-zinc-950/90 text-center p-4">
+                              <Plus className="h-5 w-5 text-zinc-550 mb-1 group-hover:text-red-500 transition-colors" />
+                              <span className="text-[9px] font-mono uppercase text-zinc-500 tracking-wider">Choose Client Photo</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) setMClientImageFile(file);
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <input
+                            type="url"
+                            value={mClientImageLink}
+                            onChange={(e) => setMClientImageLink(e.target.value)}
+                            placeholder="https://example.com/client-photo.jpg"
+                            className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-white focus:outline-none"
+                          />
+                          {mClientImageLink.trim() && (
+                            <div className="mt-2 h-16 w-16 rounded-lg overflow-hidden border border-zinc-800">
+                              <SafeGymImage src={mClientImageLink.trim()} alt="Client Preview" className="h-full w-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -9,22 +9,15 @@ const STORE_NAME = "video_blobs";
 
 export function initVideoDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    try {
-      if (typeof window === 'undefined' || !('indexedDB' in window) || !window.indexedDB) {
-        throw new Error("IndexedDB is not supported in this environment.");
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
       }
-      const request = window.indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME);
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    } catch (err) {
-      reject(err);
-    }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
   });
 }
 
