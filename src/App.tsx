@@ -46,7 +46,8 @@ import {
   getAllReviews,
   saveReview,
   deleteReview,
-  seedLiveFirestoreData
+  seedLiveFirestoreData,
+  syncLocalDataToFirestore
 } from './lib/firebaseService';
 
 export interface AppUser {
@@ -138,7 +139,49 @@ export default function App() {
     data?: any;
   } | null>(null);
 
+  const [hasLocalData, setHasLocalData] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  // Check for local storage syncable data when user signs in
+  useEffect(() => {
+    if (user && !user.isSandbox) {
+      try {
+        const regs = JSON.parse(localStorage.getItem('molecule_registrations') || '[]');
+        const tbs = JSON.parse(localStorage.getItem('molecule_trainerBookings') || '[]');
+        const cbs = JSON.parse(localStorage.getItem('molecule_classBookings') || '[]');
+        const enqs = JSON.parse(localStorage.getItem('molecule_enquiries') || '[]');
+        const revs = JSON.parse(localStorage.getItem('molecule_reviews') || '[]').filter((r: any) => r.id && !r.id.startsWith('rev_seed'));
+
+        const hasAny = regs.length > 0 || tbs.length > 0 || cbs.length > 0 || enqs.length > 0 || revs.length > 0;
+        setHasLocalData(hasAny);
+      } catch (err) {
+        console.error("Error checking local storage for sync:", err);
+      }
+    } else {
+      setHasLocalData(false);
+    }
+  }, [user, registrations, trainerBookings, classBookings, enquiries]);
+
+  const handleSyncLocalData = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      const res = await syncLocalDataToFirestore(user.uid);
+      if (res.success) {
+        console.log("Local-to-cloud synchronization succeeded!", res.syncedCounts);
+        disableLocalFallback();
+        await syncUserData(user);
+        fetchReviews();
+        setHasLocalData(false);
+        alert("Success! Your bookings have been synced with your live cloud account and are now visible on all your devices.");
+      }
+    } catch (err: any) {
+      console.error("Failed to sync offline data:", err);
+      alert("Sync failed: " + (err.message || err) + "\n\nPlease check if your Firebase security rules allow writing or try again.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Core data synchronization helper
   const syncUserData = async (u: AppUser) => {

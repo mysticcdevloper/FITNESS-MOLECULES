@@ -17,6 +17,9 @@ interface UserDashboardProps {
   onCancelTrainerBooking: (id: string) => void;
   onCancelClassBooking: (id: string) => void;
   onCancelEnquiry: (id: string) => void;
+  hasLocalDataToSync?: boolean;
+  onSyncLocalData?: () => Promise<void>;
+  syncing?: boolean;
 }
 
 export default function UserDashboard({
@@ -27,7 +30,10 @@ export default function UserDashboard({
   onCancelRegistration,
   onCancelTrainerBooking,
   onCancelClassBooking,
-  onCancelEnquiry
+  onCancelEnquiry,
+  hasLocalDataToSync = false,
+  onSyncLocalData,
+  syncing = false
 }: UserDashboardProps) {
 
   const totalActions = registrations.length + trainerBookings.length + classBookings.length + enquiries.length;
@@ -61,6 +67,33 @@ export default function UserDashboard({
             </div>
           </div>
         </div>
+
+        {hasLocalDataToSync && onSyncLocalData && (
+          <div className="mb-8 bg-gradient-to-r from-red-500/15 to-zinc-900 border border-red-500/30 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 animate-in fade-in duration-350">
+            <div className="space-y-1.5 flex-1 text-left">
+              <div className="flex items-center gap-2 text-red-500">
+                <Sparkles className="h-4 w-4 animate-pulse text-red-500" />
+                <span className="text-[10px] sm:text-xs font-mono font-bold tracking-wider uppercase">Offline Bookings Found</span>
+              </div>
+              <h4 className="text-sm sm:text-base font-bold text-white uppercase tracking-wide font-display">Sync details to live cloud account</h4>
+              <p className="text-xs text-zinc-400 leading-relaxed max-w-2xl font-sans">
+                We detected bookings and plans saved locally on this phone. Sync them to your live account now so they will be instantly visible when logging in from any other phone or device.
+              </p>
+            </div>
+            <button
+              disabled={syncing}
+              onClick={onSyncLocalData}
+              className={`w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold font-mono text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shrink-0 ${
+                syncing
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                  : 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20 active:scale-95'
+              }`}
+            >
+              <Sparkles className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{syncing ? 'Syncing...' : 'Sync to Cloud Now'}</span>
+            </button>
+          </div>
+        )}
 
         {totalActions === 0 ? (
           <div className="bg-zinc-900/30 border border-zinc-900 rounded-3xl p-12 text-center max-w-xl mx-auto py-20">

@@ -1182,3 +1182,90 @@ export async function seedLiveFirestoreData(): Promise<{ success: boolean; seede
   return { success: true, seededCounts };
 }
 
+export async function syncLocalDataToFirestore(userId: string): Promise<{ success: boolean; syncedCounts: { registrations: number; trainerBookings: number; classBookings: number; enquiries: number; reviews: number } }> {
+  const syncedCounts = {
+    registrations: 0,
+    trainerBookings: 0,
+    classBookings: 0,
+    enquiries: 0,
+    reviews: 0
+  };
+
+  try {
+    // 1. registrations
+    const localRegs = getLocal<MembershipRegistration>('molecule_registrations');
+    if (localRegs.length > 0) {
+      for (const reg of localRegs) {
+        const regId = reg.id || Math.random().toString(36).substring(2, 11);
+        const updatedReg = { ...reg, userId: userId || reg.userId };
+        await setDoc(doc(db, "registrations", regId), updatedReg);
+        syncedCounts.registrations++;
+      }
+      saveLocal('molecule_registrations', []);
+    }
+
+    // 2. trainerBookings
+    const localTrainers = getLocal<PersonalTrainerBooking>('molecule_trainerBookings');
+    if (localTrainers.length > 0) {
+      for (const tb of localTrainers) {
+        const tbId = tb.id || Math.random().toString(36).substring(2, 11);
+        const updatedTb = { ...tb, userId: userId || tb.userId };
+        await setDoc(doc(db, "trainerBookings", tbId), updatedTb);
+        syncedCounts.trainerBookings++;
+      }
+      saveLocal('molecule_trainerBookings', []);
+    }
+
+    // 3. classBookings
+    const localClasses = getLocal<ClassBooking>('molecule_classBookings');
+    if (localClasses.length > 0) {
+      for (const cb of localClasses) {
+        const cbId = cb.id || Math.random().toString(36).substring(2, 11);
+        const updatedCb = { ...cb, userId: userId || cb.userId };
+        await setDoc(doc(db, "classBookings", cbId), updatedCb);
+        syncedCounts.classBookings++;
+      }
+      saveLocal('molecule_classBookings', []);
+    }
+
+    // 4. enquiries
+    const localEnquiries = getLocal<EnquirySubmission>('molecule_enquiries');
+    if (localEnquiries.length > 0) {
+      for (const enq of localEnquiries) {
+        const enqId = enq.id || Math.random().toString(36).substring(2, 11);
+        const updatedEnq = { ...enq, userId: userId || enq.userId };
+        await setDoc(doc(db, "enquiries", enqId), updatedEnq);
+        syncedCounts.enquiries++;
+      }
+      saveLocal('molecule_enquiries', []);
+    }
+
+    // 5. reviews
+    const localReviews = getLocal<Review>('molecule_reviews');
+    const userReviews = localReviews.filter(r => r.id && !r.id.startsWith('rev_seed'));
+    if (userReviews.length > 0) {
+      for (const rev of userReviews) {
+        const revId = rev.id || "rev_" + Math.random().toString(36).substring(2, 11);
+        const updatedRev = { ...rev, userId: userId || rev.userId };
+        await setDoc(doc(db, "reviews", revId), updatedRev);
+        syncedCounts.reviews++;
+      }
+      // Keep only seeded reviews in local storage
+      const seededReviewsOnly = localReviews.filter(r => r.id && r.id.startsWith('rev_seed'));
+      saveLocal('molecule_reviews', seededReviewsOnly);
+    }
+
+    // Turn off fallback mode since writing succeeded!
+    disableLocalFallback();
+    
+    // Dispatch event to refresh views
+    window.dispatchEvent(new Event('molecule_fallback_changed'));
+  } catch (error) {
+    console.error("Failed to sync offline data to Firestore:", error);
+    throw error;
+  }
+
+  return { success: true, syncedCounts };
+}
+
+
